@@ -1,0 +1,204 @@
+# Script to sync Gravity Data Archive at Arizona Water Science Center with online ScienceBase repository
+import SbSession
+import time
+from A10 import A10project
+import os
+import string
+import sys
+from time import strftime
+
+sb = SbSession.SbSession()
+
+# master key to gravity data archive (i.e., https://www.sciencebase.gov/catalog/item/56e301cae4b0f59b85d3a346)
+gda_key = '56e301cae4b0f59b85d3a346'
+gda_path = '\\\\Igswztwwwsgrav\\Shared\\Gravity Data Archive\\Absolute Data\\A-10\\Final Data'  # Path on local computer
+gda_path = 'E:\\Shared\\current\\python\\AZWSC_Gravity'
+
+# Text file of directories to sync, 1 file per line
+sync_dir_file = 'directories_to_sync.txt'
+
+# Directory to temporarily download ScienceBase items. Items are deleted once they are synced.
+temp_dir = 'E:\\Shared\\current\\python\\AZWSC_Gravity\\tempsb'
+
+sb_grav_dic = {}
+sb_studyarea_dic = {}
+sb_station_dic = {}
+
+# lists to hold output messages
+out_synced_files = {}
+out_synced_keys = []
+out_files_on_sb_not_local = []
+out_files_uploaded = []
+out_files_sb_duplicate = []
+out_messages = []
+out_sb_studyareas_created = []
+out_sb_stations_created = []
+
+log_file = 'GravityDataArchive_SBsync_' + strftime("%Y%m%d-%H%M") + '.txt'
+
+out_messages.append('Gravity Data Archive file sync')
+out_messages.append('Start: ' + strftime("%Y-%m-%d %H:%M:%S"))
+
+print 'Logging in...'
+# username = raw_input("Username:  ")
+# sb.loginc(str(username))
+sb.login('jkennedy@usgs.gov','The frumious@')
+time.sleep(3)  # as per pysb documentation
+
+# Throughout, 'keys' are the 24-digit ScienceBase id
+studyarea_keys = sb.get_child_ids(gda_key)
+
+# Retrieve all files from ScienceBase
+print 'Downloading files from ScienceBase'
+sys.stdout.flush()
+for studyarea_key in studyarea_keys:
+    sb_studyarea = sb.get_item(studyarea_key)
+
+    # dic of study area names, e.g., 'TAMA', 'San Pedro', 'Imperial Valley'
+    sb_studyarea_dic[studyarea_key] = sb_studyarea['title']
+    station_keys = sb.get_child_ids(studyarea_key)
+
+    for st_key in station_keys:
+        station = sb.get_item(st_key)
+        sb_station_dic[(studyarea_key, st_key)] = station['title']
+        # download files
+        local_tmp_dir = os.path.join(temp_dir, sb_studyarea['title'], station['title'])
+        if not os.path.exists(local_tmp_dir):
+            os.makedirs(local_tmp_dir)
+        sb.get_item_files(station, local_tmp_dir)
+
+# Get g, etc. for files in ScienceBase
+print 'Reading files'
+sys.stdout.flush()
+for dirname, dirnames, filenames in os.walk(temp_dir):
+    for filename in filenames:
+        a = A10project()
+        a.read_project_dot_txt(os.path.join(dirname, filename))
+
+        # Identify unique stations based on name, date, and g
+        unique_key = (a.stationname, a.date, a.gravity)
+        if unique_key not in sb_grav_dic:
+            sb_grav_dic[unique_key] = dirname.split('\\')[-2] + '\\' + dirname.split('\\')[-1] + '\\' + filename
+        else:
+            out_files_sb_duplicate.append(dirname.split('\\')[-2] + '\\' + dirname.split('\\')[-1] + '\\' + filename + ", " + sb_grav_dic[unique_key])
+
+# Iterate over local directories specified in directories_to_sync.txt
+print 'Reading local files'
+sys.stdout.flush()
+with open(os.path.join(gda_path, sync_dir_file)) as fid:
+    for local_study_area in fid:
+        local_study_area = local_study_area.strip()
+        # Check if there is a SB item for the study area
+        if local_study_area not in sb_studyarea_dic.values():
+            print 'Creating new SB item: ' + local_study_area
+            # if not, create SB item under GDA root level
+            new_item = {'title': local_study_area,
+                        'parentId': gda_key}
+            new_item = sb.create_item(new_item)
+            sb_studyarea_dic[new_item['id']] = local_study_area
+            out_sb_studyareas_created.append(local_study_area)
+
+        # find SB key that corresponds to study area
+        for studyarea_key in sb_studyarea_dic:
+            if sb_studyarea_dic[studyarea_key] == local_study_area:
+                break
+
+        # Iterate over files downloaded, check if they match local gda
+        for dirname, dirnames, filenames in os.walk(os.path.join(gda_path, local_study_area)):
+            for filename in filenames:
+                fname = os.path.join(dirname, filename)
+                # get details from LOCAL project.txt file
+                if string.find(fname, 'project.txt') != -1:
+
+                    a = A10project()
+                    a.read_project_dot_txt(os.path.join(dirname, filename))
+                    unique_key = (a.stationname, a.date, a.gravity)
+                    print os.path.join(dirname, filename)
+                    sys.stdout.flush()
+                    # compare name, date, g in LOCAL files to SCIENCEBASE. If not found,
+                    if unique_key not in sb_grav_dic:
+                        # check if station already exists on ScienceBase
+                        station_exists = False
+                        for st_key in sb_station_dic:
+                            if sb_station_dic[st_key] == a.stationname:
+                                station_exists = True
+                                break  # st_key corresponds to stationname
+                        # if it doesn't, create it
+                        if not station_exists:
+                            new_station = {'title': a.stationname,
+                                           'parentId': studyarea_key}
+                            print 'Creating station: ' + a.stationname
+                            new_station = sb.create_item(new_station)
+                            st_key = (studyarea_key, new_station['id'])
+                            sb_station_dic[st_key] = a.stationname
+                            out_sb_stations_created.append(dirname.split('\\')[-2]
+                                                           + '\\' + dirname.split('\\')[-1]
+                                                           + '\\' +a.stationname)
+
+                        # upload file to appropriate study area and station
+                        sb.upload_files_and_update_item(sb.get_item(st_key[1]), [fname])
+                        out_files_uploaded.append(fname)
+
+                    # name, date, g are already in sciencebase.
+                    else:
+                        if unique_key not in out_synced_files:
+                            out_synced_files[unique_key] = sb_grav_dic[unique_key]
+                            # out_synced_keys.append(unique_key)
+                            os.remove(os.path.join(temp_dir, sb_grav_dic[unique_key]))
+                        else:
+                            out_messages.append('SKIPPING LOCAL FILE '
+                                                + dirname.split('\\')[-2] + '\\' + dirname.split('\\')[-1] + '\\'
+                                                + filename + '\n'
+                                                + 'SAME AS SB FILE ' + '\\' + sb_grav_dic[unique_key])
+
+# check if there's any files left in tempsb (files in ScienceBase not in local directory)
+for dirname, dirnames, filenames in os.walk(temp_dir):
+    for filename in filenames:
+        out_files_on_sb_not_local.append(dirname.split('\\')[-2] + '\\' + dirname.split('\\')[-1] + '\\' + filename)
+        os.remove(os.path.join(dirname, filename))
+
+out_messages.append('Finished: ' + strftime("%Y-%m-%d %H:%M:%S"))
+
+with open(log_file, 'w') as fid_out:
+    for line in out_messages:
+        fid_out.write(line + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')
+
+    fid_out.write('Duplicate files on ScienceBase, based on station name, date, and g:\n')
+    for line in out_files_sb_duplicate:
+        fid_out.write(line + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')
+
+    fid_out.write('Study areas created in ScienceBase:\n')
+    for line in out_sb_studyareas_created:
+        fid_out.write(line + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')
+
+    fid_out.write('Stations created in ScienceBase:\n')
+    for line in out_sb_stations_created:
+        fid_out.write(line + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')
+
+    fid_out.write('Files uploaded to ScienceBase:\n')
+    for line in out_files_uploaded:
+        fid_out.write(line + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')
+
+    fid_out.write('Files already in ScienceBase:\n')
+    file_list = out_synced_files.values()
+    file_list.sort()
+    for v in file_list:
+        fid_out.write(v + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')
+
+    fid_out.write('Files in ScienceBase, but not in local archive:\n')
+    for line in out_files_on_sb_not_local:
+        fid_out.write(line + '\n')
+    fid_out.write('\n')
+    fid_out.write('=====================================================================\n')

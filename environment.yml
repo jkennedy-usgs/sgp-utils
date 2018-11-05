@@ -1,0 +1,7 @@
+name: sgp-utils
+dependencies:
+  - xlsxwrite
+  - pandas
+  - tkFileDialog
+  - python=3.5
+  - matplotlib
