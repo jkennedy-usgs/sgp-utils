@@ -63,7 +63,7 @@ from shutil import copy, copyfile
 from fg5 import FG5
 from cosmos import CR_data
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QTableWidgetItem, QWidget
+from PyQt5.QtWidgets import QMainWindow, QApplication, QDialog, QTableWidgetItem, QWidget, QMessageBox
 from PyQt5.QtGui import QPixmap, QPainter, QColor
 from PyQt5.QtCore import QDateTime, QSettings, QSize, Qt, QTimer
 from PyQt5 import uic
@@ -72,9 +72,11 @@ Ui_MainWindow, MainWindowBase = uic.loadUiType(r'ui\ingestor.ui')
 Ui_PreviewWindow, PreviewWindowBase = uic.loadUiType(r'ui\preview.ui')
 Ui_Calendar, CalendarWindowBase = uic.loadUiType(r'ui\calendar.ui')
 
-G_CR_TIME_DIFF_THRESHOLD = 20*60 # in seconds
-G_PHOTO_TIME_DIFF_THRESHOLD = 20*60
+G_CR_TIME_DIFF_THRESHOLD = 20*60  # in seconds
+G_PHOTO_TIME_DIFF_THRESHOLD = 30*60
 PICTURE_SIZE = 200 # For preview, in pixels
+
+START_DATE_OFFSET = -60  # in days before present to start looking for project files
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 # Write this to the start of each COSMOS file
@@ -93,6 +95,7 @@ cosmos_header = \
 '//RecordNum,Date Time(UTC),PTB110_mb,P4_mb,P1_mb,T1_C,RH1,T_CS215,RH_CS215,Vbat,N1Cts,N2Cts, N1ETsec , N2ETsec , N1T(C),N1RH , N2T(C),N2RH ,\n' +\
 '//GpsUTC, LatDec, LongDec, Alt, Qual, NumSats, HDOP, COG, Speed_kmh, SpeedQuality, strDate\n'
 
+
 class MyApp(QMainWindow):
 
     def __init__(self):
@@ -110,7 +113,8 @@ class MyApp(QMainWindow):
 
         self.calendar.ui.calendarWidget.clicked.connect(self.set_date)
         self.ui.endDateEdit.setDate(QDateTime.currentDateTime().date())
-        self.ui.startDateEdit.setDate(QDateTime.currentDateTime().date().addDays(-21))
+        self.ui.startDateEdit.setDate(QDateTime.currentDateTime().date().addDays(START_DATE_OFFSET))
+
 
         # List of fg5 objects
         self.g_data = None
@@ -196,6 +200,8 @@ class MyApp(QMainWindow):
         self.g_data = self.get_g_data(self.settings.value('g_input_dir'))
         if self.ui.listWidget.item(0).checkState():
             self.populate_preview_table_with_g_files(self.g_data)
+        else:
+            self.populate_preview_table_with_g_files(self.g_data, check=False)
 
         if self.ui.listWidget.item(1).checkState():
             cr_occupations = self.get_CR_occupations(self.settings.value('cosmos_file'))
@@ -251,30 +257,32 @@ class MyApp(QMainWindow):
     def sync_fieldsheet_with_g(self, fs_dir):
         self.ui.statusLabel.setText('Analyzing fieldsheets...')
         fs_dict = dict()
-        for dirname, _, filenames in os.walk(fs_dir):
-            self.ui.progressBar.setRange(0, len(filenames))
-            self.ui.progressBar.setValue(0)
-            self.ui.progressBar.update()
-            i = 0
-            for filename in filenames:
-                i += 1
-                if filename.find('.pdf') != -1:
-                    temp_filename = filename.replace('.pdf','')
-                    filename_elems = temp_filename.split('_')
+        for filename in os.listdir(fs_dir):
+            if filename.find('.pdf') != -1:
+                temp_filename = filename.replace('.pdf','')
+                filename_elems = temp_filename.split('_')
+                if len(filename_elems) > 2:  # '' in station name
                     station_name = filename_elems[0]
-                    date_elems = filename_elems[1].split('-')
-                    fs_date = datetime.datetime(int(date_elems[0]), int(date_elems[1]), int(date_elems[2]), 12, 0, 0)
-                    if self.ui.startDateEdit.date() < fs_date < self.ui.endDateEdit.date():
-                        fs_dict[station_name] = os.path.join(dirname, filename)
+                    for i in range(len(filename_elems)-2):
+                        station_name += '_' + filename_elems[i+1]
+                else:
+                    station_name = filename_elems[0]
+                date_elems = filename_elems[-1].split('-')
+                fs_date = datetime.datetime(int(date_elems[0]), int(date_elems[1]), int(date_elems[2]), 12, 0, 0)
+                if self.ui.startDateEdit.date() < fs_date < self.ui.endDateEdit.date():
+                    fs_dict[station_name] = os.path.join(fs_dir, filename)
 
 
         for g_occ in self.g_data:
             try:
                 g_occ.fs_from_path = fs_dict[g_occ.stationname]
+                to_path = g_occ.filename.replace('Laptop_gdata_backup', 'Working Data')
+                g_occ.fs_to_path = os.path.join(os.path.dirname(to_path), os.path.basename(g_occ.fs_from_path))                
             except:
+                g_occ.fs_from_path = 'NA'
+                g_occ.fs_to_path = 'NA'
                 continue
-            to_path = g_occ.filename.replace('laptop_gdata_backup', 'Working Data')
-            g_occ.fs_to_path = os.path.join(os.path.dirname(to_path), os.path.basename(g_occ.fs_from_path))
+
 
     def sync_photos_with_g(self, photo_dir):
         self.ui.statusLabel.setText('Finding photos...')
@@ -288,17 +296,23 @@ class MyApp(QMainWindow):
             self.ui.progressBar.update()
 
             for filename in filenames:
-                with open(os.path.join(dirname, filename), 'rb') as fh:
-                    i += 1
-                    self.ui.progressBar.setValue(i)
-                    self.ui.progressBar.update()
-                    tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
-                    dateTaken = tags["EXIF DateTimeOriginal"]
-                    date_and_time = str(dateTaken).split(' ')
-                    date = date_and_time[0].split(':')
-                    time = date_and_time[1].split(':')
-                    photo_dt = datetime.datetime(int(date[0]), int(date[1]), int(date[2]),
-                                           int(time[0]) + 6, int(time[1]), int(time[2]))
+                if filename[-4:] == '.jpg':
+                    with open(os.path.join(dirname, filename), 'rb') as fh:
+                        i += 1
+                        self.ui.progressBar.setValue(i)
+                        self.ui.progressBar.update()
+                        tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
+                        if not tags:
+                            text1 = 'EXIF date tag not found in photo: ' + filename
+                            MessageBox(text1, 'File not processed.')
+                        dateTaken = tags["EXIF DateTimeOriginal"]
+                        date_and_time = str(dateTaken).split(' ')
+                        date = date_and_time[0].split(':')
+                        time = date_and_time[1].split(':')
+                        photo_orig_dt = datetime.datetime(int(date[0]), int(date[1]), int(date[2]),
+                                                     int(time[0]),
+                                                     int(time[1]), int(time[2]))
+                        photo_dt = photo_orig_dt - datetime.timedelta(hours=int(self.ui.timeSpinBox.value()))
                     photo_dic[photo_dt] = os.path.join(dirname, filename)
         for g_occ in self.g_data:
             matched_photos = list()
@@ -337,16 +351,18 @@ class MyApp(QMainWindow):
                     site_dir = os.path.dirname(os.path.dirname(fg5.filename))
                     self.preview_window.ui.previewTableWidget.setItem(row, 1, QTableWidgetItem('Copy and rename photo'))
                     self.preview_window.ui.previewTableWidget.setItem(row, 2, QTableWidgetItem(photo_complete_path))
+                    photo_file = os.path.join(self.settings.value('sitedescription_dir'), os.path.basename(proj_dir),
+                                              os.path.basename(site_dir),
+                                              fg5.stationname + '_' +
+                                              fg5.dtime.strftime('%Y-%m-%d') +
+                                              alphabet[idx] + '.jpg')
                     self.preview_window.ui.previewTableWidget.setItem(row, 3,
-                                                                      QTableWidgetItem(os.path.join(
-                                                                          self.settings.value('sitedescription_dir'),
-                                                                          os.path.basename(proj_dir),
-                                                                          os.path.basename(site_dir),
-                                                                          fg5.stationname + '_' +
-                                                                          fg5.date.replace('/','-') +
-                                                                          alphabet[idx] + '.jpg')))
+                                                                      QTableWidgetItem(photo_file))
                     self.preview_window.ui.previewTableWidget.setCellWidget(row, 4, image_widget)
                     self.preview_window.ui.previewTableWidget.setRowHeight(row, 200)
+                    if os.path.isfile(photo_file):
+                        self.preview_window.ui.previewTableWidget.item(row, 3).setBackground(QColor(Qt.red))
+                        self.preview_window.ui.previewTableWidget.repaint()
                 self.ui.statusLabel.setText('')
         self.ui.statusLabel.update()
 
@@ -369,22 +385,24 @@ class MyApp(QMainWindow):
                                                                                                 fg5.date.replace('/','-') +
                                                                                                 '.txt')))
 
-    def populate_preview_table_with_g_files(self, data):
+    def populate_preview_table_with_g_files(self, data, check=True):
         for fg5 in data:
-            row = self.insert_checkbox_and_row()
+            row = self.insert_checkbox_and_row(check)
             text = QTableWidgetItem('Copy ' +
-                                     os.path.basename(fg5.filename) +
-                                     ' (' +
-                                     fg5.collected +
-                                     ' sets)')
-            # text.setFontSize(6)
+                                    os.path.basename(fg5.filename) +
+                                    ' (' +
+                                    fg5.collected +
+                                    ' sets)')
             self.preview_window.ui.previewTableWidget.setItem(row, 1, text)
             self.from_path = fg5.filename
-            self.to_path = fg5.filename.replace('laptop_gdata_backup', 'Working Data')
+            self.to_path = fg5.filename.replace('Laptop_gdata_backup', 'Working Data')
             fg5.from_dir = os.path.dirname(self.from_path)
             fg5.to_dir = os.path.dirname(self.to_path)
             self.preview_window.ui.previewTableWidget.setItem(row, 2, QTableWidgetItem(self.from_path))
             self.preview_window.ui.previewTableWidget.setItem(row, 3, QTableWidgetItem(self.to_path))
+            if os.path.exists(self.to_path):
+                self.preview_window.ui.previewTableWidget.item(row, 3).setBackground(QColor(Qt.red))
+                self.preview_window.ui.previewTableWidget.repaint()
 
     def populate_preview_table_with_fieldsheets(self, data):
         for fg5 in data:
@@ -394,11 +412,14 @@ class MyApp(QMainWindow):
             self.preview_window.ui.previewTableWidget.setItem(row, 2, QTableWidgetItem(fg5.fs_from_path))
             self.preview_window.ui.previewTableWidget.setItem(row, 3, QTableWidgetItem(fg5.fs_to_path))
 
-    def insert_checkbox_and_row(self):
-        row =self.preview_window.ui.previewTableWidget.rowCount()
+    def insert_checkbox_and_row(self, check=True):
+        row = self.preview_window.ui.previewTableWidget.rowCount()
         self.preview_window.ui.previewTableWidget.insertRow(row)
         cb = QTableWidgetItem('')
-        cb.setCheckState(2)
+        if check:
+            cb.setCheckState(2)
+        else:
+            cb.setCheckState(0)
         self.preview_window.ui.previewTableWidget.setItem(row, 0, cb)
         return row
 
@@ -430,17 +451,19 @@ class ImgWidget(QWidget):
     # Widget to show photo preview
     def __init__(self, image_path, parent=None):
         super(ImgWidget, self).__init__(parent)
-        self.pic = QPixmap(image_path)
+        pic = QPixmap(image_path)
+        self.pic = pic.scaled(PICTURE_SIZE, PICTURE_SIZE, Qt.KeepAspectRatio)
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.drawPixmap(0, 0, PICTURE_SIZE, PICTURE_SIZE, self.pic)
+        painter.drawPixmap(0, 0, self.pic.width(), self.pic.height(),
+                           self.pic)
 
     def minimumSizeHint(self):
-        return QSize(PICTURE_SIZE, PICTURE_SIZE)
+        return QSize(self.pic.width(), self.pic.height())
 
     def sizeHint(self):
-        return QSize(PICTURE_SIZE, PICTURE_SIZE)
+        return QSize(self.pic.width(), self.pic.height())
 
 class Calendar(QWidget):
     def __init__(self, parent=None):
@@ -481,40 +504,63 @@ class Preview(QDialog):
                     for file in glob.glob(os.path.join(os.path.dirname(from_full_path),fn + '.*')):
                         if not os.path.exists(to_path):
                             os.makedirs(to_path)
-                        copy(file, to_path)
+                        try:
+                            copy(file, to_path)
+                        except:
+                            text1 = 'Error copying g files: ' + os.path.basename(from_path)
+                            MessageBox(text1, '')
                     gsf_files = glob_re(fn + r'[0-9][0-9][0-9].gsf',
                                         os.listdir(os.path.join(os.path.dirname(from_full_path))))
                     for file in gsf_files:
-                        copy(os.path.join(os.path.dirname(from_full_path),file), to_path)
+                        try:
+                            copy(os.path.join(os.path.dirname(from_full_path),file), to_path)
+                        except:
+                            jeff = 1
 
                 elif self.ui.previewTableWidget.item(i, 1).text().find('CR occupation') > 0:
                     self.ui.previewTableWidget.item(i, 1).setBackground(QColor(Qt.green))
                     cr_occ = self.ui.previewTableWidget.item(i, 1).cr_occ
+                    df = cr_occ.df
                     with open(self.ui.previewTableWidget.item(i, 3).text(), 'w') as fid:
                         fid.write(cosmos_header)
-                        df = cr_occ.df
-                        df['Vbat'] = df['Vbat'].map('{:,.1f}'.format)
-                        df['LatDec'] = df['LatDec'].map('{:,.1f}'.format)
                         columns = list(cr_occ.df.columns)
                         fid.write(cr_occ.df.to_csv(sep=',', index=False, header=None, columns=columns[:-2]))
                 elif self.ui.previewTableWidget.item(i,1).text().find('Copy and rename photo') == 0:
                     self.ui.previewTableWidget.item(i, 1).setBackground(QColor(Qt.green))
                     from_path = self.ui.previewTableWidget.item(i, 2).text()
                     to_path = self.ui.previewTableWidget.item(i, 3).text()
-                    if not os.path.exists(to_path):
+                    if not os.path.exists(os.path.dirname(to_path)):
+                        text1 = 'Site description directory not found: ' + os.path.basename(os.path.dirname(to_path))
+                        MessageBox(text1, 'New directory created.')
                         os.makedirs(os.path.dirname(to_path))
-                    copyfile(from_path, to_path)
+                    try:
+                        copyfile(from_path, to_path)
+                        os.remove(from_path)
+                    except:
+                        text1 = 'Error copying photo: ' + os.path.basename(from_path)
+                        MessageBox(text1, '')
                 elif self.ui.previewTableWidget.item(i, 1).text().find('Copy fieldsheet') == 0:
                     self.ui.previewTableWidget.item(i, 1).setBackground(QColor(Qt.green))
                     from_path = self.ui.previewTableWidget.item(i, 2).text()
                     to_path = self.ui.previewTableWidget.item(i, 3).text()
-                    # if not os.path.exists(to_path):
-                    #     os.makedirs(os.path.dirname(to_path))
-                    copyfile(from_path, to_path)
+                    try:
+                        copyfile(from_path, to_path)
+                        os.remove(from_path)
+                    except:
+                        text1 = 'Error copying fieldsheet: ' + os.path.basename(from_path)
+                        MessageBox(text1, '')
+
+class MessageBox(QMessageBox):
+    def __init__(self, text1, text2, parent=None):
+        super(MessageBox, self).__init__(parent)
+        self.setIcon(QMessageBox.Information)
+        self.setText(text1)
+        self.setInformativeText(text2)
+        self.addButton(QMessageBox.Yes)
+        msgBox.exec_()
 
 def glob_re(pattern, strings):
     return filter(re.compile(pattern).match, strings)
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

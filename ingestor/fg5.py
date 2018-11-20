@@ -239,5 +239,5 @@ class FG5():
         self.uncertainty = data_array[24]
         self.collected = data_array[25]
         self.processed = data_array[26]
-        self.transferhtcorr = data_array[27]
-        self.comments = data_array[28]
+        #self.transferhtcorr = data_array[27]
+        #self.comments = data_array[28]

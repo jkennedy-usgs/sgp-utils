@@ -4,6 +4,7 @@ import datetime as dt
 DIST_CRITERIA = 0.005
 SPEED_CRITERIA = 0.5
 
+
 class CR_data:
     cosmos_fields = ['RecordNum', 'Date Time(UTC)', 'PTB110_mb', 'P4_mb', 'P1_mb', 'T1_C', 'RH1', 'T_CS215', 'RH_CS215',
                      'Vbat', 'N1Cts', 'N2Cts', 'N1ETsec ', 'N2ETsec ', 'N1T(C)', 'N1RH ', 'N2T(C)', 'N2RH',
@@ -15,9 +16,24 @@ class CR_data:
         self.df = None
 
     def load_data_from_file(self, fname):
-        df = pd.read_csv(fname, comment='/', names=self.cosmos_fields)
-        df['dist'] = (df['LatDec'].diff()**2 + df['LongDec'].diff()**2).pow(1./2)
+        exclude_cols = [1, len(self.cosmos_fields)-2]
+        data = []
+        with open(fname, 'r') as fid:
+            for line in fid:
+                if line[:2] != '//':
+                    data_elements = line.split(',')
+                    try:
+                        d = [float(x.strip()) if idx not in exclude_cols else x for idx, x in enumerate(data_elements)]
+                        data.append(d)
+                    except:
+                        continue
+
+        df = pd.DataFrame(data, columns=self.cosmos_fields)
+        # df = pd.read_csv(fname, comment='/', names=self.cosmos_fields)
+        df['dist'] = (df['LatDec'].diff() ** 2 + df['LongDec'].diff() ** 2).pow(1. / 2)
         df['dt'] = pd.to_datetime(df['Date Time(UTC)'])
+        df['Vbat'] = df['Vbat'].map('{:,.1f}'.format)
+        df['LatDec'] = df['LatDec'].map('{:,.5f}'.format)
         self.df = df
 
     def split_data(self):
@@ -29,19 +45,20 @@ class CR_data:
         data = list()
         durations = list()
         first, last = 1, 1
-        for i in range(1,len(self.df)):
+        for i in range(1, len(self.df)):
 
             if df['dist'][i] < DIST_CRITERIA and \
-              df['Speed_kmh'][i] < SPEED_CRITERIA and \
-              (df['dt'][i] - df['dt'][i-1]).seconds == 300:
-                 last +=1
+                    df['Speed_kmh'][i] < SPEED_CRITERIA and \
+                    (df['dt'][i] - df['dt'][i - 1]).seconds == 300:
+                last += 1
             else:
                 if last - first > 1:
                     data.append(CR_occupation(df[first:last]))
-                    durations.append(first-last)
-                first, last = i+1, i+1
+                    durations.append(first - last)
+                first, last = i + 1, i + 1
                 continue
         return data
+
 
 class CR_occupation:
     def __init__(self, df):
@@ -57,6 +74,7 @@ class CR_occupation:
     @property
     def duration(self):
         return len(self.df)
+
 
 if __name__ == '__main__':
     fname = '.\\test_data\\test.dat'
