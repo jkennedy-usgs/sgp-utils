@@ -30,13 +30,13 @@ a = data_directory.split('/')
 # File save name is directory plus time and date
 print str(data_directory)
 if str.find(str(data_directory), 'Working') > 0:
-    filesavename = os.getcwd()  + '/' + a[-1] + '_Working_' +\
+    filesavename = os.getcwd()  + '/wroking_dir/' + a[-1] + '_Working_' +\
       strftime("%Y%m%d-%H%M") + '.txt'
 elif str.find(str(data_directory), 'Final') > 0:
-    filesavename = os.getcwd()  + '/' + a[-1] + '_Final_' +\
+    filesavename = os.getcwd()  + '/working_dir/' + a[-1] + '_Final_' +\
       strftime("%Y%m%d-%H%M") + '.txt'
 else:
-    filesavename = os.getcwd()  + '/' + a[-1] + '_' +\
+    filesavename = os.getcwd()  + '/working_dir/' + a[-1] + '_' +\
       strftime("%Y%m%d-%H%M") + '.txt'
       
       
