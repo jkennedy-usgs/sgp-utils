@@ -13,6 +13,11 @@ import re
 import os
 import Tkinter, tkFileDialog
 from time import strftime
+import configparser
+
+config = configparser.ConfigParser()
+config.read('fg5_parse.ini')
+SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
 
 gravity_data_archive = "E:\\Shared\\Gravity Data Archive\\A-10"
 pd = os.getcwd()
@@ -51,12 +56,14 @@ fout.write("Created\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
 \tTransfer Height\tActual Height\tGradient\tNominalAP\tPolar(x)\tPolar(y)\
 \tDF File\tOL File\tClock\tBlue\tRed\tDate\tTime\tTime Offset\tGravity\tSet Scatter\
 \tPrecision\tUncertainty\tCollected\tProcessed\tTransfer ht corr\tBaro corr\
-\tPolar(x) error\tPolar(y) error\\tlaser(blue) error\tclock error\tComments\n")
+\tPolar(x) error\tPolar(y) error\\tlaser(blue) error\tBlue laser err\
+\tclock error\tComments\n")
 
 # For each file in the data_directory
 for dirname,dirnames,filenames in os.walk(data_directory):
-    if 'unpublished' in dirnames:
-        dirnames.remove('unpublished')
+    if SKIP_UNPUBLISHED:
+        if 'unpublished' in dirnames:
+            dirnames.remove('unpublished')
     for filename in filenames:
         fname = os.path.join(dirname, filename)
         # If the file name ends in "project.txt"

@@ -28,8 +28,8 @@ import matplotlib.ticker as tkr
 YAXIS_LIMITS = 'tight' #loose'  # 'tight' or 'loose'
 YAXIS_FT_OF_WATER = False
 ERROR_BAR = 10  # microGal
-XLIM = [parser.parse('2018-02-01'),parser.parse('2018-05-25')]
-altFmt = mdates.DateFormatter('%b-%d')
+XLIM = None  #[parser.parse('2018-02-01'),parser.parse('2018-05-25')]  # Uses default values if not defined
+altFmt = mdates.DateFormatter('%yyyy')  # Only used if XLIM is not None
 
 # Formats y-axis labels
 def func(x, pos):
@@ -46,7 +46,7 @@ data_file = tkFileDialog.askopenfilename(title="Select text file to plot (from A
 
 plt.ion()
 stations = []
-myFmt = mdates.DateFormatter('%d')
+myFmt = mdates.DateFormatter('%yy')
 y_format = tkr.FuncFormatter(func)
 
 # Get station list and column numbers

@@ -76,14 +76,11 @@ else:
 
 if write_corrections_to_file:
     # File save name is directory plus time and date
-    fid = open('Corrections_' + strftime("%Y%m%d-%H%M") + '.csv', 'w')
+    fid = open('.\working_dir\Corrections_' + strftime("%Y%m%d-%H%M") + '.csv', 'w')
     fid.write('Station,Date,Drift_corr,Drift_rate,Elapsed_days_since_cal,SM_corr,SM,SM_mean\n')
 
 # For each file in the data_directory and subdirectories
 for dirname, dirnames, filenames in os.walk(data_directory):
-    # Files in an 'unpublished' directory, regardless of location, will be ignored
-    if 'unpublished' in dirnames:
-        dirnames.remove('unpublished')
     for filename in filenames:
         fname = os.path.join(dirname, filename)
         # If the file name ends in "project.txt"
