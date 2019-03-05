@@ -1,1 +1,2 @@
-python.exe ingestor.py
+call activate sgp
+python ingestor.py

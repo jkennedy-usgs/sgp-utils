@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf8 -*-
 """
 This software was developed by the U.S. Geological Survey Southwest Gravity Program.
@@ -557,7 +558,7 @@ class MessageBox(QMessageBox):
         self.setText(text1)
         self.setInformativeText(text2)
         self.addButton(QMessageBox.Yes)
-        msgBox.exec_()
+        self.exec_()
 
 def glob_re(pattern, strings):
     return filter(re.compile(pattern).match, strings)

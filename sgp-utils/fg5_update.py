@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # coding: utf-8
 
 # Script to update g values in FG-5/A-10 .project.txt files with laser drift and(or) a soil moisture correction.
@@ -85,8 +86,8 @@ for dirname, dirnames, filenames in os.walk(data_directory):
         fname = os.path.join(dirname, filename)
         # If the file name ends in "project.txt"
         if fname.find('.original.txt') != -1:
-            print('Already performed laser update')
-            break
+            print('Already performed laser update: ' + fname)
+            continue
         elif fname.find('project.txt') != -1:
             #if fname.find('project.txt') != -1:
                 os.system('cp "' + fname + '" "' + fname.replace('project.txt','.original.txt') + '"')
