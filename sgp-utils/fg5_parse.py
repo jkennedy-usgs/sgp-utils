@@ -86,6 +86,7 @@ for dirname, dirnames, filenames in os.walk(data_directory):
             # 'Polar' is also special, for the same reason
             Pol_tag = re.compile(r'Polar')
 
+            version = 0
             Version_tag = re.compile(r'Version')
 
             # Need this to accommodate station names with spaces
@@ -196,8 +197,6 @@ for dirname, dirnames, filenames in os.walk(data_directory):
 
                 if Version_tag_found is not None:
                     version = float(line_elements[1])
-                else:
-                    version = 0
 
                 if Name_tag_found is not None or Project_tag_found is not None:
                     try:

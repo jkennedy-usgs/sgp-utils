@@ -24,12 +24,18 @@ import tkFileDialog
 import math
 import matplotlib.dates as mdates
 import matplotlib.ticker as tkr
+import configparser
 
-YAXIS_LIMITS = 'tight' #loose'  # 'tight' or 'loose'
-YAXIS_FT_OF_WATER = False
-ERROR_BAR = 10  # microGal
-XLIM = None  #[parser.parse('2018-02-01'),parser.parse('2018-05-25')]  # Uses default values if not defined
-altFmt = mdates.DateFormatter('%yyyy')  # Only used if XLIM is not None
+config = configparser.ConfigParser()
+config.read('fg5_plot.ini')
+
+YAXIS_LIMITS_TIGHT = config.getboolean('Parameters', 'YAXIS_LIMITS_TIGHT')
+YAXIS_FT_OF_WATER = config.getboolean('Parameters', 'YAXIS_FT_OF_WATER')
+ERROR_BAR = float(config.get('Parameters', 'ERROR_BAR'))
+SET_XLIM = config.getboolean('Parameters', 'SET_XLIM')
+XLEFT = config.get('Parameters', 'XLEFT')
+XRIGHT = config.get('Parameters', 'XRIGHT')
+ALTFMT = config.get('Parameters', 'ALTFMT')
 
 # Formats y-axis labels
 def func(x, pos):
@@ -116,9 +122,9 @@ for i in range(nfigs):
 
         # Adjust ticks so they fall on Jan 1 and extend past the range of the data. If there
         # are data in January and December, add another year so that there is plenty of space.
-                if XLIM:
-                    ax.set_xlim(XLIM)
-                    ax.xaxis.set_major_formatter(altFmt)
+                if SET_XLIM:
+                    ax.set_xlim([XLEFT, XRIGHT])
+                    ax.xaxis.set_major_formatter(ALTFMT)
                 else:
                     ax.xaxis.set_major_formatter(myFmt)
                     start_month = data[figidx+ii][0][0].month
@@ -134,7 +140,7 @@ for i in range(nfigs):
                         xticks.append(datetime.datetime(iii,1,1))
                     ax.set_xticks(xticks)
                 plt.title(stations[figidx+ii])
-                if YAXIS_LIMITS == 'loose':
+                if YAXIS_LIMITS_TIGHT == 'loose':
                     max_abs_lim = max(abs(v) for v in ax.get_ylim())
                     rounded_abs_lim = math.ceil(max_abs_lim)
                     ax.set_ylim([-1*rounded_abs_lim,rounded_abs_lim])

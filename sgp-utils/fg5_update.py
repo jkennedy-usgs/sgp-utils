@@ -90,7 +90,7 @@ for dirname, dirnames, filenames in os.walk(data_directory):
             continue
         elif fname.find('project.txt') != -1:
             #if fname.find('project.txt') != -1:
-                os.system('cp "' + fname + '" "' + fname.replace('project.txt','.original.txt') + '"')
+                os.system('cp "' + fname + '" "' + fname.replace('project.txt','original.txt') + '"')
                 print(fname)
                 with open('temp.txt', "w") as fout:
                     correct_for_laser_drift = False  # set to true if valid correction is found
