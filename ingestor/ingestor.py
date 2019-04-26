@@ -73,7 +73,7 @@ Ui_MainWindow, MainWindowBase = uic.loadUiType(r'ui\ingestor.ui')
 Ui_PreviewWindow, PreviewWindowBase = uic.loadUiType(r'ui\preview.ui')
 Ui_Calendar, CalendarWindowBase = uic.loadUiType(r'ui\calendar.ui')
 
-G_CR_TIME_DIFF_THRESHOLD = 20*60  # in seconds
+G_CR_TIME_DIFF_THRESHOLD = 25*60  # in seconds
 G_PHOTO_TIME_DIFF_THRESHOLD = 30*60
 PICTURE_SIZE = 200 # For preview, in pixels
 
@@ -206,6 +206,8 @@ class MyApp(QMainWindow):
 
         if self.ui.listWidget.item(1).checkState():
             cr_occupations = self.get_CR_occupations(self.settings.value('cosmos_file'))
+            if not cr_occupations:
+                return
             self.sync_cr_with_g(cr_occupations)
             self.populate_preview_table_with_CR_occupations(self.g_data)
 
@@ -269,18 +271,19 @@ class MyApp(QMainWindow):
                 else:
                     station_name = filename_elems[0]
                 date_elems = filename_elems[-1].split('-')
-                fs_date = datetime.datetime(int(date_elems[0]), int(date_elems[1]), int(date_elems[2]), 12, 0, 0)
+                year, month, day = int(date_elems[0]), int(date_elems[1]), int(date_elems[2])
+                fs_date = datetime.datetime(year, month, day, 12, 0, 0)
                 if self.ui.startDateEdit.date() < fs_date < self.ui.endDateEdit.date():
-                    fs_dict[station_name] = os.path.join(fs_dir, filename)
+                    fs_dict[(station_name, year, month, day)] = os.path.join(fs_dir, filename)
 
 
         for g_occ in self.g_data:
             try:
-                g_occ.fs_from_path = fs_dict[g_occ.stationname]
+                g_occ.fs_from_path = fs_dict[g_occ.tuple_key]
                 to_path = g_occ.filename.replace('Laptop_gdata_backup', 'Working Data')
                 g_occ.fs_to_path = os.path.join(os.path.dirname(to_path), os.path.basename(g_occ.fs_from_path))                
             except:
-                g_occ.fs_from_path = 'NA'
+                g_occ.fs_from_path = 'Could not find field sheet: {} {}'.format(g_occ.stationname, g_occ.date)
                 g_occ.fs_to_path = 'NA'
                 continue
 
@@ -297,7 +300,7 @@ class MyApp(QMainWindow):
             self.ui.progressBar.update()
 
             for filename in filenames:
-                if filename[-4:] == '.jpg':
+                if filename[-4:].upper() == '.JPG':
                     with open(os.path.join(dirname, filename), 'rb') as fh:
                         i += 1
                         self.ui.progressBar.setValue(i)
@@ -329,8 +332,11 @@ class MyApp(QMainWindow):
 
     def get_CR_occupations(self, fname):
         cr_data = CR_data()
-        cr_data.load_data_from_file(fname)
-        return cr_data.split_data()
+        data_loaded = cr_data.load_data_from_file(fname)
+        if data_loaded:
+            return cr_data.split_data()
+        else:
+            return False
 
     def populate_preview_table_with_photos(self, data):
         self.ui.statusLabel.setText('Adding photos to preview...')

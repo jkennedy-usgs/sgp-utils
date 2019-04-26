@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! python3
 # coding: utf-8
 
 # Script to update g values in FG-5/A-10 .project.txt files with laser drift and(or) a soil moisture correction.

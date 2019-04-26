@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime as dt
-
-DIST_CRITERIA = 0.005
+from PyQt5.QtWidgets import QMessageBox
+DIST_CRITERIA = 0.002
 SPEED_CRITERIA = 0.5
 
 
@@ -18,15 +18,22 @@ class CR_data:
     def load_data_from_file(self, fname):
         exclude_cols = [1, len(self.cosmos_fields)-2]
         data = []
-        with open(fname, 'r') as fid:
-            for line in fid:
-                if line[:2] != '//':
-                    data_elements = line.split(',')
-                    try:
-                        d = [float(x.strip()) if idx not in exclude_cols else x for idx, x in enumerate(data_elements)]
-                        data.append(d)
-                    except:
-                        continue
+        try:
+            fid = open(fname, 'r')
+        except IOError:
+            QMessageBox.critical(None, 'File error', 'Error opening COSMOS file')
+            return False
+        else:
+            with fid:
+                for line in fid:
+                    if line[:2] != '//':
+                        data_elements = line.split(',')
+                        try:
+                            d = [float(x.strip()) if idx not in exclude_cols else x for idx, x in enumerate(data_elements)]
+                            data.append(d)
+                        except:
+                            continue
+
 
         df = pd.DataFrame(data, columns=self.cosmos_fields)
         # df = pd.read_csv(fname, comment='/', names=self.cosmos_fields)
@@ -35,6 +42,8 @@ class CR_data:
         df['Vbat'] = df['Vbat'].map('{:,.1f}'.format)
         df['LatDec'] = df['LatDec'].map('{:,.5f}'.format)
         self.df = df
+
+        return True
 
     def split_data(self):
         # Criteria:
@@ -48,8 +57,10 @@ class CR_data:
         for i in range(1, len(self.df)):
 
             if df['dist'][i] < DIST_CRITERIA and \
-                    df['Speed_kmh'][i] < SPEED_CRITERIA and \
                     (df['dt'][i] - df['dt'][i - 1]).seconds == 300:
+                # REMOVED:
+                # df['Speed_kmh'][i] < SPEED_CRITERIA and \  # Its possible to have two stations separated by less
+                # than a 5 minute drive (speed would be 0 for two consecutive log entries)
                 last += 1
             else:
                 if last - first > 1:

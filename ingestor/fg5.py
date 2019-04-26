@@ -51,6 +51,13 @@ class FG5():
                            int(time_arr[1]),
                            int(time_arr[2]))
 
+    @property
+    def tuple_key(self):
+        if self.dtime.hour < 5:
+            return (self.stationname, self.dtime.year, self.dtime.month, self.dtime.day - 1)
+        else:
+            return (self.stationname, self.dtime.year, self.dtime.month, self.dtime.day)
+
     def read_project_dot_txt(self, filename):
         dtf = False
         olf = False
