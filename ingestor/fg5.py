@@ -39,6 +39,9 @@ class FG5():
             self.read_project_dot_txt(fn)
             self.filename = fn
 
+    def __repr__(self):
+        return self.stationname + ' ' + self.date
+
     @property
     def dtime(self):
         # convert strings to datetime
@@ -51,12 +54,20 @@ class FG5():
                            int(time_arr[1]),
                            int(time_arr[2]))
 
+    """ 
+    Assume that if a g measurement was made after midnight UTC the field sheet will have the date from the day before
+    (the date is recorded in local time). 
+    
+    May need updating for surveys not in the western US
+    """
     @property
     def tuple_key(self):
         if self.dtime.hour < 5:
-            return (self.stationname, self.dtime.year, self.dtime.month, self.dtime.day - 1)
+            time = self.dtime - dt.timedelta(days=1)
+            return (self.stationname, time.year, time.month, time.day)
         else:
             return (self.stationname, self.dtime.year, self.dtime.month, self.dtime.day)
+
 
     def read_project_dot_txt(self, filename):
         dtf = False
