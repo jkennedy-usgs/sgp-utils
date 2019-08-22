@@ -14,8 +14,10 @@ class CR_data:
     def __init__(self):
         super(CR_data, self).__init__()
         self.df = None
+        self.file = None
 
     def load_data_from_file(self, fname):
+        self.file = fname
         exclude_cols = [1, len(self.cosmos_fields)-2]
         data = []
         try:
@@ -34,16 +36,13 @@ class CR_data:
                         except:
                             continue
 
-
         df = pd.DataFrame(data, columns=self.cosmos_fields)
-        # df = pd.read_csv(fname, comment='/', names=self.cosmos_fields)
         df['dist'] = (df['LatDec'].diff() ** 2 + df['LongDec'].diff() ** 2).pow(1. / 2)
         df['dt'] = pd.to_datetime(df['Date Time(UTC)'])
         df['Vbat'] = df['Vbat'].map('{:,.1f}'.format)
         df['LatDec'] = df['LatDec'].map('{:,.5f}'.format)
-        self.df = df
 
-        return True
+        self.df = df
 
     def split_data(self):
         # Criteria:
@@ -64,7 +63,7 @@ class CR_data:
                 last += 1
             else:
                 if last - first > 1:
-                    data.append(CR_occupation(df[first:last]))
+                    data.append(CR_occupation(df[first:last], self.file))
                     durations.append(first - last)
                 first, last = i + 1, i + 1
                 continue
@@ -72,9 +71,10 @@ class CR_data:
 
 
 class CR_occupation:
-    def __init__(self, df):
+    def __init__(self, df, file):
         super(CR_occupation, self).__init__()
         self.df = df
+        self.file = file
 
     @property
     def dtime(self):

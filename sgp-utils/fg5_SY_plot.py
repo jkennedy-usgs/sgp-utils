@@ -1,3 +1,4 @@
+#! python3 
 # A10_SY_plot.py
 #
 # Creates specific yield plots (change in thickness of free-standing water vs. groundwater-level change).
@@ -41,14 +42,18 @@
 import numpy as np
 import pylab as plt
 import datetime
-import tkFileDialog
+from tkinter import filedialog
+from tkinter import Tk
 import matplotlib.dates as mdates
 import matplotlib.ticker as tkr
 import csv
 import os
-from get_nwis_data import get_nwis_data
+from nwis import nwis_get_data
 from dateutil import parser
 
+# # When saved, this exports fonts as fonts instead of paths:
+plt.rcParams['svg.fonttype'] = 'none'
+plt.interactive(False)
 # Parameters than can be changed
 presentation_style = True  # Makes labels big
 cross_ref_file = 'SiteIDcrossref.csv'
@@ -66,7 +71,9 @@ def write_to_file(filesavename, station, g_date, g, gwl, code, gap, y1, y2):
         fn.write('{},{},{},{},{},{},{},{}\n'.format(station, g_date, g, gwl, code, gap, y1, y2))
 
 # Open dialog to specify input file. Alternatively, specify file directly.
-data_file = tkFileDialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
+root = Tk()
+root.withdraw()
+data_file = filedialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
 
 if write_output_to_file:
     out_file = data_file[:-4]
@@ -104,7 +111,7 @@ for i in range(len(stations)-1):
 # Retrieve data from nwis (will return both discrete and continuous data)
 for station in stations:
     sta_index = stations.index(station)
-    nwis_data[sta_index] = (get_nwis_data(cross_ref_file, station))
+    nwis_data[sta_index] = (nwis_get_data(cross_ref_file, station))
     if nwis_data[sta_index] != 0:
         nwis_data[sta_index]['station'] = station
 
@@ -131,17 +138,13 @@ for idx, sta in enumerate(nwis_data):
                     repdate = np.repeat(g_date, len(sta['continuous_x']))    # vector of gravity-meas. dates
                     delta_cont = np.asarray(sta['continuous_x']) - repdate   # vector of time-deltas
                     min_delta_cont = min(np.absolute(delta_cont))
-                    idx_cont = np.where(delta_cont == min_delta_cont)[0]     # index of gw level closest to gravity meas
-                    if len(idx_cont) == 0:
-                        idx_cont = len(delta_cont) - 1  # if all of the continuous data is before the g meas., take the last one
+                    idx_cont = np.argmin(np.absolute(delta_cont))     # index of gw level closest to gravity meas
                 # and closest discrete data
                 if sta['discrete_x']:
                     repdate = np.repeat(g_date, len(sta['discrete_x']))
                     delta_disc = np.asarray(sta['discrete_x']) - repdate
                     min_delta_disc = min(np.absolute(delta_disc))
-                    idx_disc = np.where(delta_disc == min_delta_disc)[0]
-                    if len(idx_disc) == 0:
-                        idx_disc = len(delta_disc) - 1
+                    idx_disc = np.argmin(np.absolute(delta_disc))
                 # check threshold
                 if min_delta_cont < threshold or min_delta_disc < threshold:
                     if min_delta_cont < min_delta_disc:
@@ -162,16 +165,16 @@ for idx, sta in enumerate(nwis_data):
                                 any(i > datetime.timedelta(days=0) for i in delta_cont): # Check if data on both sides of gap
                             closest_neg = max([i for i in delta_cont if i <= datetime.timedelta(days=0)]) # time delta to closest negative diff
                             closest_pos = min([i for i in delta_cont if i >= datetime.timedelta(days=0)])
-                            idx_closest_neg_cont, = np.where(delta_cont == closest_neg)
-                            idx_closest_pos_cont, = np.where(delta_cont == closest_pos)
+                            idx_closest_neg_cont, = np.nonzero(delta_cont == closest_neg)[0]
+                            idx_closest_pos_cont, = np.nonzero(delta_cont == closest_pos)[0]
                             cont_gap = np.absolute(closest_neg) + closest_pos
                     if sta['discrete_x']:
                         if any(i < datetime.timedelta(days=0) for i in delta_disc) and \
                                 any(i > datetime.timedelta(days=0) for i in delta_disc):  # Check if data on both sides of gap
                             closest_neg = max([i for i in delta_disc if i <= datetime.timedelta(days=0)]) # time delta to closest negative diff
                             closest_pos = min([i for i in delta_disc if i >= datetime.timedelta(days=0)])
-                            idx_closest_neg_disc, = np.where(delta_disc == closest_neg)
-                            idx_closest_pos_disc, = np.where(delta_disc == closest_pos)
+                            idx_closest_neg_disc, = np.nonzero(delta_disc == closest_neg)[0]
+                            idx_closest_pos_disc, = np.nonzero(delta_disc == closest_pos)[0]
                             disc_gap = np.absolute(closest_neg) + closest_pos
                     if cont_gap < disc_gap: # interpolate the data type with the smaller gap
                         if cont_gap < interpolate_threshold:
@@ -214,9 +217,9 @@ for idx, sta in enumerate(nwis_data):
                             'size': 16}
                     plt.rc('font', **font)
                     plt.subplots_adjust(bottom=0.15, top=0.85, hspace=0.4, left=0.25, right=0.85)
-                plot_y = [(y-plot_y[0])/12.77 for y in plot_y]
-                plot_x = [(x-plot_x[0])*-1 for x in plot_x]
-                poly = np.polyfit(plot_x, plot_y, 1)
+                plot_y = [(y-plot_y[0])/41.9 for y in plot_y]
+                plot_x = [(x-plot_x[0])*-.3048 for x in plot_x]
+                poly, cov = np.polyfit(plot_x, plot_y, 1, cov=True)
                 cc = np.corrcoef(plot_x, plot_y)[0,1]
                 line_x = np.linspace(min(plot_x)-0.2, max(plot_x)+0.2,10)
                 p = np.poly1d(poly)
@@ -226,16 +229,16 @@ for idx, sta in enumerate(nwis_data):
                 plt.plot(line_x,line_y)
                 plt.title(sta['station'])
                 ax = plt.gca()
-                plt.ylabel('Change in water storage\n(feet of free-standing water, from gravity data)')
-                plt.xlabel('Change in groundwater level (feet)')
-                plt.figtext(0.25, 0.85, 'Sy = %0.2f' % poly[0])
+                plt.ylabel('Change in water storage\n(meters of free-standing water, from gravity data)')
+                plt.xlabel('Change in groundwater level (meters)')
+                plt.figtext(0.25, 0.85, 'Sy = %0.2f ± %0.02f' % (poly[0], np.sqrt(cov[0,0])))
                 plt.figtext(0.25, 0.81, 'r^2 = %0.2f' % cc)
+                plt.savefig(sta['station'] + '.svg')
                 plt.show()
 
 
-# # When saved, this exports fonts as fonts instead of paths:
-#         plt.rcParams['svg.fonttype'] = 'none'
+
 # This keeps the figure windows open until the user closes them:
-raw_input()
+# input()
 
 

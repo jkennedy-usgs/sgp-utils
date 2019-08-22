@@ -1,3 +1,4 @@
+#! python3 
 # Plot_A10.py
 #
 # Takes output file from Parse_A10 (.txt) and generates time-series plots.
@@ -19,12 +20,13 @@
 from numpy import mod
 import pylab as plt
 from dateutil import parser
-import datetime
-import tkFileDialog
+from tkinter import filedialog
+from tkinter import Tk
 import math
 import matplotlib.dates as mdates
 import matplotlib.ticker as tkr
 import configparser
+import datetime
 
 config = configparser.ConfigParser()
 config.read('fg5_plot.ini')
@@ -35,7 +37,7 @@ ERROR_BAR = float(config.get('Parameters', 'ERROR_BAR'))
 SET_XLIM = config.getboolean('Parameters', 'SET_XLIM')
 XLEFT = config.get('Parameters', 'XLEFT')
 XRIGHT = config.get('Parameters', 'XRIGHT')
-ALTFMT = config.get('Parameters', 'ALTFMT')
+# ALTFMT = config.get('Parameters', 'ALTFMT')
 
 # Formats y-axis labels
 def func(x, pos):
@@ -47,7 +49,7 @@ offset = 978990000
 
 # Open dialog to specify input file. Alternatively, specify file directly.
 #Tkinter.Tk().withdraw() # Close the root window
-data_file = tkFileDialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
+data_file = filedialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
 # data_file = "SanPedro_qaqc.txt"
 
 plt.ion()
@@ -79,7 +81,7 @@ with open(data_file) as fp:
     for line in fp:
         a = line.split("\t")
         sta = a[sta_col].upper()
-        print sta
+        print(sta)
         sta_index = stations.index(sta)
         # using the dateutil parser we can plot dates directly
         data[sta_index][0].append(parser.parse(a[date_col]))
@@ -99,8 +101,8 @@ for d in data:
 data = offset_data
 
 #print len(data)
-nfigs = len(data)/4
-if mod(len(data),4) != 0:
+nfigs = len(data)//4    # floor division: returns integer
+if len(data) % 4 != 0:  # modulo
     nfigs+=1
 
 #print nfigs, 4 plots per page
@@ -124,7 +126,7 @@ for i in range(nfigs):
         # are data in January and December, add another year so that there is plenty of space.
                 if SET_XLIM:
                     ax.set_xlim([XLEFT, XRIGHT])
-                    ax.xaxis.set_major_formatter(ALTFMT)
+                    #ax.xaxis.set_major_formatter(ALTFMT)
                 else:
                     ax.xaxis.set_major_formatter(myFmt)
                     start_month = data[figidx+ii][0][0].month
@@ -155,4 +157,4 @@ for i in range(nfigs):
 # When saved, this exports fonts as fonts instead of paths:
         plt.rcParams['svg.fonttype'] = 'none'
 # This keeps the figure windows open until the user closes them:
-raw_input()
+input()

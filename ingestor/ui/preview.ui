@@ -73,6 +73,16 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="btn_Export">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Export summary - this writes a text file showing the contents of the preview window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Export summary</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btn_OK">
        <property name="maximumSize">
         <size>
@@ -136,8 +146,42 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>btn_Export</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>export_summary()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>617</x>
+     <y>731</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>416</x>
+     <y>376</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>previewTableWidget</sender>
+   <signal>itemClicked(QTableWidgetItem*)</signal>
+   <receiver>Form</receiver>
+   <slot>preview_file()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>416</x>
+     <y>360</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>416</x>
+     <y>376</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>process_data()</slot>
+  <slot>export_summary()</slot>
+  <slot>preview_file()</slot>
  </slots>
 </ui>

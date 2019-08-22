@@ -38,7 +38,6 @@ from tkinter import *
 import datetime
 import pandas as pd
 from time import strftime
-import fnmatch
 
 
 # User-specified options
@@ -57,7 +56,7 @@ root = Tk()
 root.withdraw()
 data_directory = filedialog.askdirectory(
     parent=root,initialdir=pwd)
-#data_directory = u'\\\\Igswztwwgszona\\Gravity Data Archive\\Absolute Data\\A-10\\Final Data\\Big Chino\\PRESCOTT CB\\'
+# data_directory = u'\\\\Igswztwwgszona\\Gravity Data Archive\\Absolute Data\\A-10\\Final Data\\Big Chino'
 
 laser_corr, drift_rate, elapsed_days = -999, -999, -999
 sm_at_time_of_g, sm, sm_corr = -999, -999, -999
@@ -85,12 +84,13 @@ for dirname, dirnames, filenames in os.walk(data_directory):
     for filename in filenames:
         fname = os.path.join(dirname, filename)
         # If the file name ends in "project.txt"
-        if fname.find('.original.txt') != -1:
-            print('Already performed laser update: ' + fname)
-            continue
-        elif fname.find('project.txt') != -1:
-            #if fname.find('project.txt') != -1:
-                os.system('cp "' + fname + '" "' + fname.replace('project.txt','original.txt') + '"')
+        if fname.find('project.txt') != -1:
+            orig_fn = fname.replace('project', 'original')
+            if os.path.isfile(orig_fn):
+                print('Already performed laser update: ' + fname)
+                continue
+            else:
+                os.system('cp "' + fname + '" "' + fname.replace('project.txt', 'original.txt') + '"')
                 print(fname)
                 with open('temp.txt', "w") as fout:
                     correct_for_laser_drift = False  # set to true if valid correction is found
