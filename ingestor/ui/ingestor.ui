@@ -9,20 +9,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>635</height>
+    <width>765</width>
+    <height>443</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>900</width>
-    <height>0</height>
+    <width>700</width>
+    <height>400</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1200</width>
-    <height>16777215</height>
+    <height>800</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,396 +36,604 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="5" column="8">
-     <widget class="QToolButton" name="fileBtn_photo">
-      <property name="text">
-       <string/>
+    <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetNoConstraint</enum>
       </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>folder.png</normaloff>folder.png</iconset>
+      <property name="leftMargin">
+       <number>10</number>
       </property>
-     </widget>
-    </item>
-    <item row="10" column="10">
-     <widget class="QToolButton" name="fileBtn_sitedescription">
-      <property name="text">
-       <string/>
+      <property name="topMargin">
+       <number>10</number>
       </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>folder.png</normaloff>folder.png</iconset>
+      <property name="rightMargin">
+       <number>10</number>
       </property>
-     </widget>
-    </item>
-    <item row="6" column="1" colspan="9">
-     <widget class="QLineEdit" name="cosmosLineEdit">
-      <property name="minimumSize">
-       <size>
-        <width>620</width>
-        <height>0</height>
-       </size>
+      <property name="bottomMargin">
+       <number>10</number>
       </property>
-     </widget>
-    </item>
-    <item row="7" column="1" colspan="9">
-     <widget class="QLineEdit" name="fieldsheetLineEdit">
-      <property name="minimumSize">
-       <size>
-        <width>620</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="10">
-     <widget class="QToolButton" name="fileBtn_fieldsheet">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>folder.png</normaloff>folder.png</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="1" colspan="9">
-     <widget class="QLineEdit" name="sitedescriptionLineEdit">
-      <property name="minimumSize">
-       <size>
-        <width>620</width>
-        <height>0</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="10">
-     <widget class="QToolButton" name="fileBtn_cosmos">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>folder.png</normaloff>folder.png</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1" colspan="9">
-     <widget class="QLineEdit" name="gLineEdit">
-      <property name="text">
-       <string>\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Laptop_gdata_backup\ABQ</string>
-      </property>
-     </widget>
-    </item>
-    <item row="13" column="0" colspan="11">
-     <widget class="QLabel" name="statusLabel">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="0" colspan="11">
-     <widget class="QListWidget" name="listWidget">
       <item>
-       <property name="text">
-        <string>Copy g files</string>
-       </property>
-       <property name="checkState">
-        <enum>Checked</enum>
-       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="minimumSize">
+           <size>
+            <width>170</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>160</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Look for files between...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="startDateEdit">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="toolBtnCal1">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>cal.jpg</normaloff>cal.jpg</iconset>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>and</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="endDateEdit">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="toolBtnCal2">
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>cal.jpg</normaloff>cal.jpg</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
       <item>
-       <property name="text">
-        <string>Parse COSMOS data</string>
-       </property>
-       <property name="checkState">
-        <enum>Checked</enum>
-       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="minimumSize">
+           <size>
+            <width>170</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where *.project.txt files created by 'g' software are located. All subdirectories will be searched. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Absolute-gravity observations in this directory are paired with the photos, Cosmos occupations, and field sheets in the respective directories. If specified, the *.project.txt files and all accompanying *.fg5, *.gsf, and *.txt files will be copied from the &amp;quot;Laptop_gdata_backup&amp;quot; directory in the Gravity Data Archive to the &amp;quot;Working Data&amp;quot; directory. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>g file directory</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="gLineEdit">
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Laptop_gdata_backup\ABQ</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="fileBtn_g">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>folder.png</normaloff>folder.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
-       <property name="text">
-        <string>Copy photos to Site Descriptions directory</string>
-       </property>
-       <property name="checkState">
-        <enum>Checked</enum>
-       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="minimumSize">
+             <size>
+              <width>170</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where raw Cosmos data are located. If specified, Cosmos data are divided by occupation based on GPS location, speed (must equal zero), and time. Data belonging to an absolute-gravity observation are copied to the file:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;&amp;lt;station name&amp;gt;_CR_YYYY-MM-DD. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;All contiguous Cosmos data are combined in a single occupation. Therefore, if multiple absolute-gravity observations (i.e,. multiple *.project.txt files) were created, there will be only a single CR file that corresponds to all AG observations.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Files ending in *.RVR or *.txt will be read, others will be ignored.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Data from all files in the target directory will be read. Data does not need to be combined in a singles file.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\COSMOS\2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\COSMOS\2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/COSMOS/2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="text">
+             <string>COSMOS directory</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="cosmosLineEdit">
+            <property name="minimumSize">
+             <size>
+              <width>400</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QToolButton" name="fileBtn_cosmos">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>folder.png</normaloff>folder.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
-       <property name="text">
-        <string>Copy field sheets to Site Descriptions directory</string>
-       </property>
-       <property name="checkState">
-        <enum>Unchecked</enum>
-       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="minimumSize">
+           <size>
+            <width>170</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where photos are located. If specified, photos are renamed with the station name and date and moved (not copied) to the appropriate station directory in the site description directory. If no directory exists for the station a new one will be created. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Files ending in *.jpg or *.JPG will be read, others will be ignored.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Photos are matched up with gravity observations based on their date. Because gravity data are collected in UTC time, and photo EXIF data is (typically) in local time, the time zone offset must be specified (AZ: -7 hr, NM: -6 hr (MDT) or -7 hr (MST), CA: -7 hr (PDT) or -8 hr (PST)).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/incoming/AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Photo directory</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="photoLineEdit">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="fileBtn_photo">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>folder.png</normaloff>folder.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>UTC Offset</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="timeSpinBox">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::PlusMinus</enum>
+          </property>
+          <property name="suffix">
+           <string> hr</string>
+          </property>
+          <property name="minimum">
+           <number>-12</number>
+          </property>
+          <property name="maximum">
+           <number>12</number>
+          </property>
+          <property name="value">
+           <number>-7</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-     </widget>
-    </item>
-    <item row="5" column="10">
-     <widget class="QSpinBox" name="timeSpinBox">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>50</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="buttonSymbols">
-       <enum>QAbstractSpinBox::PlusMinus</enum>
-      </property>
-      <property name="suffix">
-       <string> hr</string>
-      </property>
-      <property name="minimum">
-       <number>-12</number>
-      </property>
-      <property name="maximum">
-       <number>12</number>
-      </property>
-      <property name="value">
-       <number>-7</number>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1" colspan="7">
-     <widget class="QLineEdit" name="photoLineEdit"/>
-    </item>
-    <item row="2" column="1">
-     <widget class="QDateEdit" name="startDateEdit">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>120</width>
-        <height>16777215</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="7" colspan="4">
-     <widget class="QDialogButtonBox" name="buttonBox">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="standardButtons">
-       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="0" colspan="11">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>0</number>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where *.project.txt files created by 'g' software are located. All subdirectories will be searched. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Absolute-gravity observations in this directory are paired with the photos, Cosmos occupations, and field sheets in the respective directories. If specified, the *.project.txt files and all accompanying *.fg5, *.gsf, and *.txt files will be copied from the &amp;quot;Laptop_gdata_backup&amp;quot; directory in the Gravity Data Archive to the &amp;quot;Working Data&amp;quot; directory. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>g file directory</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QToolButton" name="toolBtnCal1">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>cal.jpg</normaloff>cal.jpg</iconset>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where raw Cosmos data are located. If specified, Cosmos data are divided by occupation based on GPS location, speed (must equal zero), and time. Data belonging to an absolute-gravity observation are copied to the file:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;&amp;lt;station name&amp;gt;_CR_YYYY-MM-DD. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;All contiguous Cosmos data are combined in a single occupation. Therefore, if multiple absolute-gravity observations (i.e,. multiple *.project.txt files) were created, there will be only a single CR file that corresponds to all AG observations.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Files ending in *.RVR or *.txt will be read, others will be ignored.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Data from all files in the target directory will be read. Data does not need to be combined in a singles file.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\COSMOS\2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\COSMOS\2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/COSMOS/2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
-      </property>
-      <property name="text">
-       <string>COSMOS directory</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="4">
-     <widget class="QLabel" name="label_3">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>40</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>and</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Look for files between...</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_4">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where photos are located. If specified, photos are renamed with the station name and date and moved (not copied) to the appropriate station directory in the site description directory. If no directory exists for the station a new one will be created. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Files ending in *.jpg or *.JPG will be read, others will be ignored.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Photos are matched up with gravity observations based on their date. Because gravity data are collected in UTC time, and photo EXIF data is (typically) in local time, the time zone offset must be specified (AZ: -7 hr, NM: -6 hr (MDT) or -7 hr (MST), CA: -7 hr (PDT) or -8 hr (PST)).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/incoming/AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Photo directory</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where scanned field sheets in PDF format are located. If specified, field sheets with the station name and date in the title are moved (not copied) to the appropriate measurement directory in the Working Data directory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Field sheet filenames must be in the format:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;&amp;lt;station name&amp;gt;_YYYY-MM-DD.pdf&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;For example, MENA_2019-05-10.pdf&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The station name must match the name in the *.project.txt file and the station name in the Working Data directory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/incoming/AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Field sheet directory</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="6">
-     <widget class="QToolButton" name="toolBtnCal2">
-      <property name="text">
-       <string>...</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>cal.jpg</normaloff>cal.jpg</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="0">
-     <widget class="QLabel" name="label_9">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The site description directory. Photos are renamed and copied to this directory, based on the project area and the station name in the Working Data path. &lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\Site Descriptions&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\gs\TucsonAZ-W\WSC\Gravity Data Archive\Site Descriptions&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/Site Descriptions&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="text">
-       <string>Site description directory</string>
-      </property>
-     </widget>
-    </item>
-    <item row="11" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Tasks</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="9">
-     <widget class="QLabel" name="label_8">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>UTC Offset</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="5">
-     <widget class="QDateEdit" name="endDateEdit">
-      <property name="maximumSize">
-       <size>
-        <width>120</width>
-        <height>16777215</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="10">
-     <widget class="QToolButton" name="fileBtn_g">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>folder.png</normaloff>folder.png</iconset>
-      </property>
-     </widget>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="minimumSize">
+             <size>
+              <width>170</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where scanned field sheets in PDF format are located. If specified, field sheets with the station name and date in the title are moved (not copied) to the appropriate measurement directory in the Working Data directory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Field sheet filenames must be in the format:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;&amp;lt;station name&amp;gt;_YYYY-MM-DD.pdf&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;For example, MENA_2019-05-10.pdf&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The station name must match the name in the *.project.txt file and the station name in the Working Data directory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/incoming/AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Field sheet directory</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="fieldsheetLineEdit">
+            <property name="minimumSize">
+             <size>
+              <width>400</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QToolButton" name="fileBtn_fieldsheet">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>folder.png</normaloff>folder.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="minimumSize">
+           <size>
+            <width>170</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The directory where scanned field sheets in PDF format are located. If specified, field sheets with the station name and date in the title are moved (not copied) to the appropriate measurement directory in the Working Data directory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Field sheet filenames must be in the format:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;&amp;lt;station name&amp;gt;_YYYY-MM-DD.pdf&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;For example, MENA_2019-05-10.pdf&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;The station name must match the name in the *.project.txt file and the station name in the Working Data directory.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;Acceptable formats:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;\\Igswztwwgszona\GravityData Archive\incoming\AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;X:/incoming/AAC_2019-04-03&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>GPS directory</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="GPSLineEdit">
+          <property name="minimumSize">
+           <size>
+            <width>400</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="fileBtn_GPS">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>folder.png</normaloff>folder.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Tasks</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidget">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>200</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>400</width>
+              <height>0</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>Copy g files</string>
+             </property>
+             <property name="checkState">
+              <enum>Checked</enum>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Parse COSMOS data</string>
+             </property>
+             <property name="checkState">
+              <enum>Checked</enum>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Copy photos to Site Descriptions directory</string>
+             </property>
+             <property name="checkState">
+              <enum>Checked</enum>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Copy field sheets to Site Descriptions directory</string>
+             </property>
+             <property name="checkState">
+              <enum>Checked</enum>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Copy, rename, and convert GPS files</string>
+             </property>
+             <property name="checkState">
+              <enum>Checked</enum>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QProgressBar" name="progressBar">
+            <property name="value">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QDialogButtonBox" name="buttonBox">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="standardButtons">
+             <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -428,7 +642,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>765</width>
      <height>21</height>
     </rect>
    </property>
@@ -482,17 +696,33 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
+   <sender>fileBtn_GPS</sender>
+   <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>ingest()</slot>
+   <slot>getdir_GPS()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>390</x>
-     <y>536</y>
+     <x>911</x>
+     <y>223</y>
     </hint>
     <hint type="destinationlabel">
-     <x>399</x>
+     <x>591</x>
+     <y>431</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolBtnCal2</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show_date_end()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>534</x>
+     <y>112</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>294</x>
      <y>299</y>
     </hint>
    </hints>
@@ -514,6 +744,22 @@
    </hints>
   </connection>
   <connection>
+   <sender>fileBtn_cosmos</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>getdir_cosmos()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>852</x>
+     <y>124</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>449</x>
+     <y>317</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
    <sender>toolBtnCal1</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
@@ -521,22 +767,6 @@
    <hints>
     <hint type="sourcelabel">
      <x>355</x>
-     <y>112</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>294</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolBtnCal2</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>show_date_end()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>534</x>
      <y>112</y>
     </hint>
     <hint type="destinationlabel">
@@ -562,18 +792,34 @@
    </hints>
   </connection>
   <connection>
-   <sender>fileBtn_cosmos</sender>
+   <sender>fileBtn_photo</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>getdir_cosmos()</slot>
+   <slot>getdir_photo()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>852</x>
-     <y>124</y>
+     <x>717</x>
+     <y>96</y>
     </hint>
     <hint type="destinationlabel">
      <x>449</x>
      <y>317</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>ingest()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>390</x>
+     <y>536</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
     </hint>
    </hints>
   </connection>
@@ -593,38 +839,6 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>fileBtn_photo</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>getdir_photo()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>717</x>
-     <y>96</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>449</x>
-     <y>317</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>fileBtn_sitedescription</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>getdir_sitedescription()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>852</x>
-     <y>180</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>449</x>
-     <y>317</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
   <slot>set_date()</slot>
@@ -636,5 +850,6 @@
   <slot>getdir_cosmos()</slot>
   <slot>getdir_sitedescription()</slot>
   <slot>getdir_fieldsheet()</slot>
+  <slot>getdir_GPS()</slot>
  </slots>
 </ui>

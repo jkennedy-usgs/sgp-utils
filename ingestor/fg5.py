@@ -34,6 +34,7 @@ class FG5():
         self.transferhtcorr = None
         self.comments = None
         self.cr_occ = None  # cosmic-ray occupation
+        self.gps_occ = None
         self.photos = None
         if fn:
             self.read_project_dot_txt(fn)
@@ -74,6 +75,8 @@ class FG5():
         olf = False
         skip_grad = False
         in_comments = 0
+        comments = ''
+        version = 9
         project_file = open(filename)
         data_array = []  # ['a']*32
         # Look for these words in the g file
@@ -221,7 +224,6 @@ class FG5():
 
             if comment_tag_found is not None:
                 in_comments = 1
-                comments = ''
 
         data_array.append(comments)
 

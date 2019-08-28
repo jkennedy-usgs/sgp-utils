@@ -1,5 +1,4 @@
 import pandas as pd
-import datetime as dt
 from PyQt5.QtWidgets import QMessageBox
 DIST_CRITERIA = 0.002
 SPEED_CRITERIA = 0.5
@@ -78,6 +77,7 @@ class CR_occupation:
 
     @property
     def dtime(self):
+        # Return mean observation time
         dt = self.df['dt']
         m = self.df['dt'].min()
         return (m + (dt - m).mean()).to_pydatetime()
