@@ -1,0 +1,1 @@
+py -3.7 -m pip --cert C:\SoftwareSupport\cacert.pem install matplotlib

@@ -37,6 +37,7 @@ class FG5():
         self.gps_occ = None
         self.photos = None
         if fn:
+            print('Reading {}'.format(fn))
             self.read_project_dot_txt(fn)
             self.filename = fn
 
