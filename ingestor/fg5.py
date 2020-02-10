@@ -37,7 +37,6 @@ class FG5():
         self.gps_occ = None
         self.photos = None
         if fn:
-            print('Reading {}'.format(fn))
             self.read_project_dot_txt(fn)
             self.filename = fn
 
@@ -72,6 +71,7 @@ class FG5():
 
 
     def read_project_dot_txt(self, filename):
+        print('Reading {}'.format(filename))
         dtf = False
         olf = False
         skip_grad = False
@@ -201,6 +201,10 @@ class FG5():
                     data_array.append(line_elements[1].strip())
                 except:
                     data_array.append('-999')
+                if len(data_array) == 3:
+                    if data_array[2] == '':
+                        print('WARNING!!! Station name is blank: {}'.format(filename))
+
 
             if lat_tag_found is not None:
                 data_array.append(line_elements[1].strip())

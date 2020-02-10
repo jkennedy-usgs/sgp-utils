@@ -555,7 +555,7 @@
             </property>
             <item>
              <property name="text">
-              <string>Copy g files</string>
+              <string>Copy measurement directory from Laptop_gdata_backup to Working Data</string>
              </property>
              <property name="checkState">
               <enum>Checked</enum>
@@ -563,7 +563,7 @@
             </item>
             <item>
              <property name="text">
-              <string>Parse COSMOS data</string>
+              <string>Parse COSMOS data and copy to measurement directory</string>
              </property>
              <property name="checkState">
               <enum>Checked</enum>
@@ -579,7 +579,7 @@
             </item>
             <item>
              <property name="text">
-              <string>Copy field sheets to Site Descriptions directory</string>
+              <string>Copy field sheets to measurement directory</string>
              </property>
              <property name="checkState">
               <enum>Checked</enum>
@@ -587,7 +587,7 @@
             </item>
             <item>
              <property name="text">
-              <string>Copy, rename, and convert GPS files</string>
+              <string>Rename, convert to Rinex, and copy GPS files to measurement directory</string>
              </property>
              <property name="checkState">
               <enum>Checked</enum>

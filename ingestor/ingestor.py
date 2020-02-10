@@ -367,6 +367,7 @@ class MyApp(QMainWindow):
                         if not tags:
                             text1 = 'EXIF date tag not found in photo: ' + filename
                             MessageBox(text1, 'File not processed.')
+                            continue
                         date_taken = tags["EXIF DateTimeOriginal"]
                         date_and_time = str(date_taken).split(' ')
                         date = date_and_time[0].split(':')
@@ -576,7 +577,18 @@ class MyApp(QMainWindow):
                     self.ui.statusbar.update()
                     fg5 = FG5(fname)
                     if self.ui.startDateEdit.date() < fg5.dtime < self.ui.endDateEdit.date():
-                        data.append(FG5(fname))
+                        if fg5.stationname == '':
+                            text1 = 'Error! The station name in file {} is blank. Ignoring this station; unxepected ' \
+                                'results may happen. Suggest fixing it in laptop_gdata_backup and re-running Ingestor.'\
+                                .format(fname)
+                            MessageBox(text1, '')
+                        elif fg5.stationname != station_name:
+                            text1 = 'Warning! The station name {} in the project.txt file {} does not match the name ' \
+                                    'of the file. Suggest fixing it in laptop_gdata_backup and re-running Ingestor.'\
+                                .format(fg5.stationname, fname)
+                            MessageBox(text1, '')
+                        else:
+                            data.append(FG5(fname))
         self.ui.statusbar.showMessage('')
         return data
 
