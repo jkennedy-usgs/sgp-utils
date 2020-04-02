@@ -11,43 +11,50 @@ USGS
 
 import re
 import os
+import sys
 from tkinter import filedialog
 from tkinter import Tk
 from time import strftime
 import configparser
 
 config = configparser.ConfigParser()
-config.read('fg5_parse.ini')
+config.read('X:\\sgp-utils\\sgp-utils\\fg5_parse.ini')
 SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
 
 gravity_data_archive = "E:\\Shared\\Gravity Data Archive\\A-10"
 pd = os.getcwd()
 # gravity_data_archive = "X:\\Absolute Data\\A-10"
 
+
 def launch_gui():
     root = Tk()
     root.withdraw()
     data_directory = filedialog.askdirectory(
         parent=root, initialdir=pd)
-    a = data_directory.split('/')
 
+    return data_directory
+
+
+def parse_data(data_directory):
     # For testing
     # data_directory = "E:\\Shared\\current\\python\\AZWSC_Gravity\\TAMA"
-    # a = ['junk','TAMA']
-
+    # a = data_directory.split('/')
+    a = os.path.split(data_directory)
     # File save name is directory plus time and date
     print(str(data_directory))
-    if str.find(str(data_directory), 'Working') > 0:
-        filesavename = os.getcwd() + '/working_dir/' + a[-1] + '_Working_' + \
-                       strftime("%Y%m%d-%H%M") + '.txt'
-    elif str.find(str(data_directory), 'Final') > 0:
-        filesavename = os.getcwd() + '/working_dir/' + a[-1] + '_Final_' + \
-                       strftime("%Y%m%d-%H%M") + '.txt'
+    if os.getcwd() == os.path.normpath('X:\sgp-utils\sgp-utils'):
+        wd = '/working_dir/'
     else:
-        filesavename = os.getcwd() + '/working_dir/' + a[-1] + '_' + \
-                       strftime("%Y%m%d-%H%M") + '.txt'
+        wd = '/'
+        
+    if str.find(str(data_directory), 'Working') > 0:
+        dd = '_Working_'
+    elif str.find(str(data_directory), 'Final') > 0:
+        dd = '_Final_'
+    else:
+        dd = '_'
 
-
+    filesavename = os.getcwd() + wd + a[-1] + dd + strftime("%Y%m%d-%H%M") + '.txt'
 
     # open file for overwrite (change to "r" to append)
     fout = open(filesavename, "w")
@@ -285,4 +292,11 @@ def parse(data_directory):
     return all_data
 
 if __name__ == "__main__":
-    launch_gui()
+    print(sys.argv)
+    if len(sys.argv) == 1:
+        directory = launch_gui()
+        parse_data(directory)
+    else:
+        directory = sys.argv[1]
+        os.system('echo ' + directory + ' > nneww.txt')
+        parse_data(directory)
