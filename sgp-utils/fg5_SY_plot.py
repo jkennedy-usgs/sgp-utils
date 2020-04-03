@@ -219,23 +219,25 @@ for idx, sta in enumerate(nwis_data):
                     plt.subplots_adjust(bottom=0.15, top=0.85, hspace=0.4, left=0.25, right=0.85)
                 plot_y = [(y-plot_y[0])/41.9 for y in plot_y]
                 plot_x = [(x-plot_x[0])*-.3048 for x in plot_x]
-                poly, cov = np.polyfit(plot_x, plot_y, 1, cov=True)
-                cc = np.corrcoef(plot_x, plot_y)[0,1]
-                line_x = np.linspace(min(plot_x)-0.2, max(plot_x)+0.2,10)
-                p = np.poly1d(poly)
-                line_y = p(line_x)
-                plt.figure(facecolor='white')
-                plt.plot(plot_x, plot_y,'.')
-                plt.plot(line_x,line_y)
-                plt.title(sta['station'])
-                ax = plt.gca()
-                plt.ylabel('Change in water storage\n(meters of free-standing water, from gravity data)')
-                plt.xlabel('Change in groundwater level (meters)')
-                plt.figtext(0.25, 0.85, 'Sy = %0.2f ± %0.02f' % (poly[0], np.sqrt(cov[0,0])))
-                plt.figtext(0.25, 0.81, 'r^2 = %0.2f' % cc)
-                plt.savefig(sta['station'] + '.svg')
-                plt.show()
-
+                try:  # Sometimes polyfit fails, even if there's 3 points?
+                    poly, cov = np.polyfit(plot_x, plot_y, 1, cov=True)
+                    cc = np.corrcoef(plot_x, plot_y)[0,1]
+                    line_x = np.linspace(min(plot_x)-0.2, max(plot_x)+0.2,10)
+                    p = np.poly1d(poly)
+                    line_y = p(line_x)
+                    plt.figure(facecolor='white')
+                    plt.plot(plot_x, plot_y,'.')
+                    plt.plot(line_x,line_y)
+                    plt.title(sta['station'])
+                    ax = plt.gca()
+                    plt.ylabel('Change in water storage\n(meters of free-standing water, from gravity data)')
+                    plt.xlabel('Change in groundwater level (meters)')
+                    plt.figtext(0.25, 0.85, 'Sy = %0.2f ± %0.02f' % (poly[0], np.sqrt(cov[0,0])))
+                    plt.figtext(0.25, 0.81, 'r^2 = %0.2f' % cc)
+                    plt.savefig(sta['station'] + '.svg')
+                    plt.show()
+                except ValueError as e:
+                    print(e)
 
 
 # This keeps the figure windows open until the user closes them:

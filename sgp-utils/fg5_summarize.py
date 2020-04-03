@@ -11,18 +11,20 @@ USGS
 import string
 import re
 import os
-import Tkinter, tkFileDialog
+from tkinter import filedialog
+from tkinter import Tk
 from time import strftime
 
 gravity_data_archive = "X:\\Absolute Data\\A-10"
-root = Tkinter.Tk()
+
+root = Tk()
 root.withdraw()
-data_directory = tkFileDialog.askdirectory(
-    parent=root,initialdir=gravity_data_archive)
+data_directory = filedialog.askdirectory(
+    parent=root, initialdir=gravity_data_archive)
 
 # data_directory = r'X:/Absolute Data/A-10/Working Data/Imperial Valley'
 
-print data_directory
+print(data_directory)
 output_line=0
 
 #open file for overwrite (change to "r" to append)
@@ -39,9 +41,9 @@ for dirname,dirnames,filenames in os.walk(data_directory):
     for filename in filenames:
         fname = os.path.join(dirname, filename)
         # If the file name ends in "project.txt"
-        if string.find(fname,'project.txt') != -1:
+        if str.find(fname,'project.txt') != -1:
             project_file = open(fname)
-            print fname
+            print(fname)
             data_descriptor = 0
             data_list = ['']*7
             # Look for these words in the g file
@@ -51,49 +53,48 @@ for dirname,dirnames,filenames in os.walk(data_directory):
             for line in project_file:
                 # Change up some text in the g file to make it easier to parse
                 # (remove duplicates, etc.)
-                line = string.strip(line)
-                line = string.replace(line,'\n\n','\n')
-                line = string.replace(line,":  ",": ")
+                line = str.strip(line)
+                line = str.replace(line,'\n\n','\n')
+                line = str.replace(line,":  ",": ")
                 # Repeat to take care of ":   " (three spaces)
-                line = string.replace(line,":  ",": ")
-                line = string.replace(line,":  ",": ")
-                line = string.replace(line,"Gravity Data Archive","GDA")
-                line = string.replace(line,"Project Name:","Project")
-                line = string.replace(line,"File Created:","Created")
-                line = string.replace(line,"Setup Height:","Setht")
-                line = string.replace(line,"Delta Factor Filename:","DFFile")
-                line = string.replace(line,"Ocean Load ON, Filename:","OLFile")
-                line = string.replace(line," Height:","")
-                line = string.replace(line,"Nominal Air Pressure:","Nominal")
-                line = string.replace(line,"Barometric Admittance Factor:","Admittance")
-                line = string.replace(line," Motion Coord:","")
-                line = string.replace(line,"Set Scatter:","Scatter")
-                line = string.replace(line,"Offset:","ofst")
-                line = string.replace(line,"Time Offset (D h:m:s):","Offset")
-                line = string.replace(line,"Ocean Load:","OLC")
-                line = string.replace(line,"Rubidium Frequency:","RubFrequency")
-                line = string.replace(line,"Blue Lock:","Blue")
-                line = string.replace(line,"Red Lock:","Red")
-                line = string.replace(line,"Red/Blue Separation:","Separation")
-                line = string.replace(line,"Red/Blue Interval:","Interval")
-                line = string.replace(line,"Gravity Corrections","Corrections")
-                line = string.replace(line,"Number of Sets Collected:","SetsColl")
-                line = string.replace(line,"Number of Sets Processed:","SetsProc")
-                line = string.replace(line,"Polar Motion:","PolMotC") # This is the PM error, not the values
-                line = string.replace(line,"Barometric Pressure:","")
-                line = string.replace(line,"System Setup:","")
-                line = string.replace(line,"Total Uncertainty:","Total_unc")
-                line = string.replace(line,"Measurement Precision:","Precision")
-                line = string.replace(line,":","")
-                line = string.replace(line,",","")
-                line_elements = string.split(line," ")
+                line = str.replace(line,":  ",": ")
+                line = str.replace(line,":  ",": ")
+                line = str.replace(line,"Gravity Data Archive","GDA")
+                line = str.replace(line,"Project Name:","Project")
+                line = str.replace(line,"File Created:","Created")
+                line = str.replace(line,"Setup Height:","Setht")
+                line = str.replace(line,"Delta Factor Filename:","DFFile")
+                line = str.replace(line,"Ocean Load ON, Filename:","OLFile")
+                line = str.replace(line," Height:","")
+                line = str.replace(line,"Nominal Air Pressure:","Nominal")
+                line = str.replace(line,"Barometric Admittance Factor:","Admittance")
+                line = str.replace(line," Motion Coord:","")
+                line = str.replace(line,"Set Scatter:","Scatter")
+                line = str.replace(line,"Offset:","ofst")
+                line = str.replace(line,"Time Offset (D h:m:s):","Offset")
+                line = str.replace(line,"Ocean Load:","OLC")
+                line = str.replace(line,"Rubidium Frequency:","RubFrequency")
+                line = str.replace(line,"Blue Lock:","Blue")
+                line = str.replace(line,"Red Lock:","Red")
+                line = str.replace(line,"Red/Blue Separation:","Separation")
+                line = str.replace(line,"Red/Blue Interval:","Interval")
+                line = str.replace(line,"Gravity Corrections","Corrections")
+                line = str.replace(line,"Number of Sets Collected:","SetsColl")
+                line = str.replace(line,"Number of Sets Processed:","SetsProc")
+                line = str.replace(line,"Polar Motion:","PolMotC") # This is the PM error, not the values
+                line = str.replace(line,"Barometric Pressure:","")
+                line = str.replace(line,"System Setup:","")
+                line = str.replace(line,"Total Uncertainty:","Total_unc")
+                line = str.replace(line,"Measurement Precision:","Precision")
+                line = str.replace(line,":","")
+                line = str.replace(line,",","")
+                line_elements = str.split(line," ")
 
                 # Look for tags
                 tags_found = re.search(tags,line)
                 Comment_tag_found = re.search(Comment_tag,line)
 
                 if tags_found != None:
-                    print line_elements
                     data_list[data_descriptor] = line_elements[1]
                     data_descriptor = data_descriptor + 1
 
@@ -115,7 +116,6 @@ for dirname,dirnames,filenames in os.walk(data_directory):
 
             data_list.append(comments)
             if site != old_site:
-                print site
                 fout.close()
                 old_site = site
                 filesavename = os.getcwd()  + '/' + site + '.txt'

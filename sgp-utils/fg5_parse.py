@@ -298,5 +298,4 @@ if __name__ == "__main__":
         parse_data(directory)
     else:
         directory = sys.argv[1]
-        os.system('echo ' + directory + ' > nneww.txt')
         parse_data(directory)

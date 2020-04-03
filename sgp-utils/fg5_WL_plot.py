@@ -18,18 +18,19 @@ from numpy import mod, ceil
 import matplotlib.pylab as plt
 from dateutil import parser
 import datetime
-import tkFileDialog
+from tkinter import filedialog
+from tkinter import Tk
 import matplotlib.dates as mdates
 import matplotlib.ticker as tkr
-from get_nwis_data import get_nwis_data
+from nwis import nwis_get_data
 
 # Parameters and default values:
-a10_sd = 5				      Default A-10 standard deviation, for error bars
-convert_to_water = True			      Converts gravity change to thickness-of-water change (41.9 microGal/m)
-consistent_date_axes = True		      Causes all plots to have the same time span (set by x_min, x_max)
-cross_ref_file = 'SiteIDcrossref.csv'	      File with gravity station names and corresponding 15-digit USGS ID
-figs_per_page = 4			      plots per page
-meters = True				      Use meters or feet
+a10_sd = 5				              # Default A-10 standard deviation, for error bars
+convert_to_water = True			      # Converts gravity change to thickness-of-water change (41.9 microGal/m)
+consistent_date_axes = True		      # Causes all plots to have the same time span (set by x_min, x_max)
+cross_ref_file = 'SiteIDcrossref.csv' # File with gravity station names and corresponding 15-digit USGS ID
+figs_per_page = 4			          # plots per page
+meters = True				          # Use meters or feet
 
 # specify x-axis limits, instead of taking them from the data. If only gravity data are present (no water levels), the
 # date range will be taken from the gravity data.
@@ -47,11 +48,11 @@ def func(x, pos):
 offset = 978990000
 
 # Open dialog to specify input file. Alternatively, specify file directly.
-data_file = tkFileDialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
+data_file = filedialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
 # data_file = "SanPedro_qaqc.txt"
 
 # Matplotlib interactive mode
-plt.ion()
+plt.ioff()
 stations = []
 myFmt = mdates.DateFormatter('%Y')
 y_format = tkr.FuncFormatter(func)
@@ -77,7 +78,7 @@ for i in range(len(stations)-1):
 
 for station in stations:
     sta_index = stations.index(station)
-    nwis_data[sta_index] = (get_nwis_data(cross_ref_file, station))
+    nwis_data[sta_index] = (nwis_get_data(cross_ref_file, station))
 
 # Get gravity data from input file
 with open(data_file) as fp:
@@ -181,7 +182,4 @@ while i < len(grav_data):
         figidx += 1
     i += 1
 
-# This keeps the figure windows open until the user closes them:
-raw_input()
-
-
+plt.show()
