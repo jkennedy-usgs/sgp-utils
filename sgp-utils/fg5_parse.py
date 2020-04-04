@@ -291,11 +291,11 @@ def parse(data_directory):
                 all_data.append(data_array)
     return all_data
 
+
 if __name__ == "__main__":
     print(sys.argv)
     if len(sys.argv) == 1:
         directory = launch_gui()
-        parse_data(directory)
     else:
         directory = sys.argv[1]
-        parse_data(directory)
+    parse_data(directory)
