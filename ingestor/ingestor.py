@@ -222,10 +222,14 @@ class MyApp(QMainWindow):
         self.update_settings_from_textboxes()
         self.study_area = os.path.basename(self.settings.value('g_input_dir'))
         self.g_data = self.get_g_data(self.settings.value('g_input_dir'))
-        if self.ui.listWidget.item(COPY_G).checkState():
-            self.populate_preview_table_with_g_files(self.g_data)
+        if self.g_data:
+            if self.ui.listWidget.item(COPY_G).checkState():
+                self.populate_preview_table_with_g_files(self.g_data)
+            else:
+                self.populate_preview_table_with_g_files(self.g_data, check=False)
         else:
-            self.populate_preview_table_with_g_files(self.g_data, check=False)
+            MessageBox('No .project.txt files found within the date range', '')
+            return
 
         if self.ui.listWidget.item(PARSE_COSMOS).checkState():
             cr_occupations = self.get_CR_occupations(self.settings.value('cosmos_dir'))
