@@ -35,8 +35,8 @@ meters = True				          # Use meters or feet
 # specify x-axis limits, instead of taking them from the data. If only gravity data are present (no water levels), the
 # date range will be taken from the gravity data.
 if consistent_date_axes:
-    x_min = datetime.datetime(2010,1,1)
-    x_max = datetime.datetime(2018,1,1)
+    x_min = datetime.datetime(2016,1,1)
+    x_max = datetime.datetime(2021,1,1)
 
 
 # Formats y-axis labels

@@ -39,7 +39,6 @@ import datetime
 import pandas as pd
 from time import strftime
 
-
 # User-specified options
 update_laser = True
 laser_cal_file = "\\\\Igswztwwgszona\\Gravity Data Archive\\Absolute Data\\A-10\\Instrument Maintenance\\Calibrations\\A10-008 clock and laser calibrations.xlsx"

@@ -59,7 +59,7 @@ presentation_style = True  # Makes labels big
 cross_ref_file = 'SiteIDcrossref.csv'
 threshold = datetime.timedelta(days=5)  # If within a threshold, just take the nearest data point
 interpolate_threshold = datetime.timedelta(days = 50)  # otherwise, interpolate if the data gap is below a threshold
-write_output_to_file = True
+write_output_to_file = False
 
 # Formats y-axis labels
 def func(x, pos):
@@ -150,11 +150,13 @@ for idx, sta in enumerate(nwis_data):
                     if min_delta_cont < min_delta_disc:
                         plot_x.append(sta['continuous_y'][idx_cont])
                         plot_y.append(grav_data[idx][1][g_idx])
-                        write_to_file(filesavename, sta['station'], g_date, plot_y[-1], plot_x[-1], 'C', min_delta_cont.days, '0', '0')
+                        if write_output_to_file:
+                            write_to_file(filesavename, sta['station'], g_date, plot_y[-1], plot_x[-1], 'C', min_delta_cont.days, '0', '0')
                     elif min_delta_cont > min_delta_disc:
                         plot_x.append(sta['discrete_y'][idx_disc])
                         plot_y.append(grav_data[idx][1][g_idx])
-                        write_to_file(filesavename, sta['station'], g_date, plot_y[-1], plot_x[-1], 'D', min_delta_disc.days, '0', '0')
+                        if write_output_to_file:
+                            write_to_file(filesavename, sta['station'], g_date, plot_y[-1], plot_x[-1], 'D', min_delta_disc.days, '0', '0')
                     continue
                 else: # No water-level measurements are very close. Check if we can interpolate.
                     interpolate = False
@@ -241,6 +243,6 @@ for idx, sta in enumerate(nwis_data):
 
 
 # This keeps the figure windows open until the user closes them:
-# input()
+input()
 
 

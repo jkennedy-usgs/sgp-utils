@@ -5,15 +5,15 @@ import pandas as pd
 import datetime
 
 # define year of measurements for naming
-year = 2019
+year = 2014
 
 # Please navigate to folder containing measurement subfolders for specified year
-# root = Tk()
-# root.withdraw()
-# folder = filedialog.askdirectory()
+root = Tk()
+root.withdraw()
+folder = filedialog.askdirectory()
 
 # quick check to see all stations included in that year
-folder = "//igswztwwgszona/Gravity Data Archive/Relative Data/All American Canal/2019-05"
+#folder = "//igswztwwgszona/Gravity Data Archive/Relative Data/All American Canal/2019-05"
 for folders in sorted(os.listdir(folder)):
     print(folders)
 

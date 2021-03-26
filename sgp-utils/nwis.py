@@ -61,32 +61,35 @@ def nwis_get_data(cross_ref_file, gravity_station_ID):
     out_dic = dict()
     # rdb_meas retrieval is preferred, it returns both discrete and continuous measurements.
     nwis_URL = 'http://nwis.waterdata.usgs.gov/nwis/dv?cb_72019=on&format=rdb_meas' + \
-               '&site_no=%s' + \
-               '&referred_module=gw&period=&begin_date=1999-10-01&end_date=2018-10-16'
+               f'&site_no={nwis_ID}' + \
+               '&referred_module=gw&period=&begin_date=1999-10-01&end_date=2021-03-01'
     print('Retrieving rdb data for {} from {}'.format(grav_ID, nwis_URL))
-    r = requests.get(nwis_URL % nwis_ID)
+    r = requests.get(nwis_URL)
     # If there is continuous data, it will start with '# ----... WARNING ---...'
     if r.text[:5] != '# ---':
     # if no continuous data, retrieve discrete data
-        nwis_URL: str = 'https://nwis.waterdata.usgs.gov/nwis/gwlevels/?site_no=%s' + \
+        nwis_URL: str = f'https://nwis.waterdata.usgs.gov/nwis/gwlevels/?site_no={nwis_ID}' + \
                    '&format=rdb_meas'
         print('No continuous data for {}. Retrieving discrete data from {}'.format(grav_ID, nwis_URL))
-        r = requests.get(nwis_URL % nwis_ID)
+        r = requests.get(nwis_URL)
     nwis_data = r.text.split('\n')
     for nwis_line in nwis_data:
         line_elems = nwis_line.split('\t')
         # Need to test for null strings because it's possible for there to be a date without a measurement.
-        if line_elems[0] == u'USGS':
-            if line_elems[2] == u'GW':
-                if line_elems[6] != u'':
-                    discrete_x.append(parser.parse(line_elems[3]))
+        try:  # the rdb format has changed; parsing by '\t' barely works with the fixed-width fields
+            if line_elems[0] == u'USGS':
+                if line_elems[2] == u'GW':
+                    if line_elems[6] != u'':
+                        discrete_x.append(parser.parse(line_elems[3]))
+                        discrete_y.append(float(line_elems[6]))
+                elif line_elems[3] != u'':
+                    discrete_x.append(parser.parse(line_elems[2]))
                     discrete_y.append(float(line_elems[6]))
-            elif line_elems[3] != u'':
-                discrete_x.append(parser.parse(line_elems[2]))
-                discrete_y.append(float(line_elems[6]))
-            elif line_elems[4] != u'':
-                continuous_x.append(parser.parse(line_elems[2]))
-                continuous_y.append(float(line_elems[4]))
+                elif line_elems[4] != u'':
+                    continuous_x.append(parser.parse(line_elems[2]))
+                    continuous_y.append(float(line_elems[4]))
+        except Exception as e:
+            continue
     out_dic['continuous_x'] = continuous_x
     out_dic['continuous_y'] = continuous_y
     out_dic['discrete_x'] = discrete_x

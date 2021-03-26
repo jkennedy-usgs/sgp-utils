@@ -198,7 +198,11 @@ class FG5():
 
             if tags_found is not None:
                 try:
-                    data_array.append(line_elements[1].strip())
+                    if line_elements[0] != 'Name':
+                        data_array.append(line_elements[1].strip())
+                    else:
+                        stripped_elems = [x.strip() for x in line_elements]
+                        data_array.append('_'.join(stripped_elems[1:]))
                 except:
                     data_array.append('-999')
                 if len(data_array) == 3:

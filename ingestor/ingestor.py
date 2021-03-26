@@ -438,30 +438,33 @@ class MyApp(QMainWindow):
         self.ui.progressBar.setRange(0, len(data))
         self.ui.progressBar.setValue(0)
         self.ui.progressBar.update()
+        copied_photos = []
         for fg5 in data:
             i += 1
             self.ui.progressBar.setValue(i)
             self.ui.progressBar.update()
             if fg5.photos:
                 for idx, photo_complete_path in enumerate(fg5.photos):
-                    row = self.insert_checkbox_and_row()
-                    image_widget = ImgWidget(photo_complete_path)
-                    proj_dir = os.path.dirname(os.path.dirname(os.path.dirname(fg5.filename)))
-                    site_dir = os.path.dirname(os.path.dirname(fg5.filename))
-                    self.preview_window.ui.previewTableWidget.setItem(row, 1, QTableWidgetItem('Copy and rename photo'))
-                    self.preview_window.ui.previewTableWidget.setItem(row, 2, QTableWidgetItem(photo_complete_path))
-                    photo_file = os.path.join(site_description_directory, os.path.basename(proj_dir),
-                                              os.path.basename(site_dir),
-                                              fg5.stationname + '_' +
-                                              fg5.dtime.strftime('%Y-%m-%d') +
-                                              alphabet[idx] + '.jpg')
-                    self.preview_window.ui.previewTableWidget.setItem(row, 3,
-                                                                      QTableWidgetItem(photo_file))
-                    self.preview_window.ui.previewTableWidget.setCellWidget(row, 4, image_widget)
-                    self.preview_window.ui.previewTableWidget.setRowHeight(row, 200)
-                    if os.path.isfile(photo_file):
-                        self.preview_window.ui.previewTableWidget.item(row, 3).setBackground(QColor(Qt.red))
-                        self.preview_window.ui.previewTableWidget.repaint()
+                    if photo_complete_path not in copied_photos:
+                        copied_photos.append(photo_complete_path)
+                        row = self.insert_checkbox_and_row()
+                        image_widget = ImgWidget(photo_complete_path)
+                        proj_dir = os.path.dirname(os.path.dirname(os.path.dirname(fg5.filename)))
+                        site_dir = os.path.dirname(os.path.dirname(fg5.filename))
+                        self.preview_window.ui.previewTableWidget.setItem(row, 1, QTableWidgetItem('Copy and rename photo'))
+                        self.preview_window.ui.previewTableWidget.setItem(row, 2, QTableWidgetItem(photo_complete_path))
+                        photo_file = os.path.join(site_description_directory, os.path.basename(proj_dir),
+                                                  os.path.basename(site_dir),
+                                                  fg5.stationname + '_' +
+                                                  fg5.dtime.strftime('%Y-%m-%d') +
+                                                  alphabet[idx] + '.jpg')
+                        self.preview_window.ui.previewTableWidget.setItem(row, 3,
+                                                                          QTableWidgetItem(photo_file))
+                        self.preview_window.ui.previewTableWidget.setCellWidget(row, 4, image_widget)
+                        self.preview_window.ui.previewTableWidget.setRowHeight(row, 200)
+                        if os.path.isfile(photo_file):
+                            self.preview_window.ui.previewTableWidget.item(row, 3).setBackground(QColor(Qt.red))
+                            self.preview_window.ui.previewTableWidget.repaint()
                 self.ui.statusbar.showMessage('')
         self.ui.statusbar.update()
 
@@ -576,7 +579,8 @@ class MyApp(QMainWindow):
                 fname = os.path.join(dirname, filename)
                 # If the file name ends in "project.txt"
                 if fname.find('project.txt') != -1:
-                    station_name = filename.split('_')[0]
+                    station_name_temp = filename.split('_')
+                    station_name = '_'.join(station_name_temp[:-1])
                     self.ui.statusbar.showMessage('Searching for .fg5 files in {}'.format(station_name))
                     self.ui.statusbar.update()
                     fg5 = FG5(fname)

@@ -29,7 +29,7 @@ import datetime
 import sys
 
 config = configparser.ConfigParser()
-config.read('X:\\sgp-utils\\sgp-utils\\fg5_plot.ini')
+config.read('fg5_plot.ini')
 
 YAXIS_LIMITS_TIGHT = config.getboolean('Parameters', 'YAXIS_LIMITS_TIGHT')
 YAXIS_FT_OF_WATER = config.getboolean('Parameters', 'YAXIS_FT_OF_WATER')

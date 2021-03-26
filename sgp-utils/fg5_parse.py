@@ -18,12 +18,12 @@ from time import strftime
 import configparser
 
 config = configparser.ConfigParser()
-config.read('X:\\sgp-utils\\sgp-utils\\fg5_parse.ini')
+config.read('fg5_parse.ini')
 SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
 
-gravity_data_archive = "E:\\Shared\\Gravity Data Archive\\A-10"
+gravity_data_archive = "E:\\Shared\\Gravity Data Archive\\Absolute Data\\A-10"
 pd = os.getcwd()
-# gravity_data_archive = "X:\\Absolute Data\\A-10"
+gravity_data_archive = "X:\\Absolute Data\\A-10"
 
 
 def launch_gui():
@@ -63,8 +63,8 @@ def parse_data(data_directory):
     fout.write("Created\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
     \tTransfer Height\tActual Height\tGradient\tNominalAP\tPolar(x)\tPolar(y)\
     \tDF File\tOL File\tClock\tBlue\tRed\tDate\tTime\tTime Offset\tGravity\tSet Scatter\
-    \tPrecision\tUncertainty\tCollected\tProcessed\tTransfer ht corr\tBaro corr\
-    \tPolar(x) error\tPolar(y) error\\tlaser(blue) error\tBlue laser err\
+    \tPrecision\tUncertainty\tCollected\tProcessed\tBaro corr\tTransfer ht corr\
+    \tPolar(x) error\tPolar(y) error\tRed laser error\tBlue laser err\
     \tclock error\tComments\n")
 
     all_data = parse(data_directory)
@@ -275,14 +275,23 @@ def parse(data_directory):
                 data_array.append("=VLOOKUP(S" + str(output_line + 2) +
                                   ",'\\\\Igswzcwwwsjeffk\Shared\Gravity\[finals.data.xlsx]Sheet1'" +
                                   "!$F$1:$I$20000,4,FALSE)-M" + str(output_line + 2))
+                # Lookup red and blue laser calibrations
                 data_array.append("=VLOOKUP(S" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
                                   "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,3,TRUE)-Q" + str(output_line + 2))
+                                  "!$A$2:$D$20,4,TRUE)-R" + str(output_line + 2))
                 data_array.append("=VLOOKUP(S" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
                                   "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2))
+                                  "!$A$2:$D$20,3,TRUE)-Q" + str(output_line + 2))                                  
+                data_array.append("=IF(ABS(VLOOKUP(S" + str(output_line + 2) +
+                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
+                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
+                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2) +
+                                  ") < 0.00001, 0, VLOOKUP(S" + str(output_line + 2) +
+                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
+                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
+                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2) + ")")
 
                 data_array.append(comments)
 
