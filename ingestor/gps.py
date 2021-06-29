@@ -7,10 +7,10 @@ import datetime
 alphabet = 'abcdefghijklmnopqrstuvwx'
 
 def convert_T01_to_dat(fullfile):
-    os.system('runpkr00.exe -d {}'.format(fullfile))
+    os.system('runpkr00.exe -d "{}"'.format(fullfile))
 
 def convert_dat_to_rinex(fullfile):
-    os.system('teqc.exe -tr d {} > {}'.format(fullfile.replace('T01', 'dat'),
+    os.system('teqc.exe -tr d "{}" > "{}"'.format(fullfile.replace('T01', 'dat'),
                                               fullfile.replace('T01', 'rnx')))
 
 
@@ -29,7 +29,7 @@ class GPS_data:
 
     @property
     def doy(self):
-        result = subprocess.check_output('teqc +quiet +mds +doy {}'.format(self.file))
+        result = subprocess.check_output('teqc +quiet +mds +doy "{}"'.format(self.file))
         year_day = result.decode().split()[0]
         doy = year_day.split(':')[1]
         return doy

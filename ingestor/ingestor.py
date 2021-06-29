@@ -145,22 +145,22 @@ class MyApp(QMainWindow):
         """
         if self.settings.value('g_test_dir') is None:
             self.settings.setValue('g_test_dir',
-                                   '\\\\Igswztwwgszona\\Gravity Data Archive\\')
+                                   '\\\\gs\\tucsonaz-w\\wsc\\Gravity Data Archive\\')
         if self.settings.value('g_input_dir') is None:
             self.settings.setValue('g_input_dir',
-                                   '\\\\Igswztwwgszona\\Gravity Data Archive\\Absolute Data\\A-10\\Laptop_gdata_backup')
+                                   '\\\\gs\\tucsonaz-w\\wsc\\Gravity Data Archive\\Absolute Data\\A-10\\Laptop_gdata_backup')
         if self.settings.value('cosmos_dir') is None:
             self.settings.setValue('cosmos_dir',
-                                   '\\\\Igswztwwgszona\\Gravity Data Archive\\')
+                                   '\\\\gs\\tucsonaz-w\\wsc\\Gravity Data Archive\\')
         if self.settings.value('photo_dir') is None:
             self.settings.setValue('photo_dir',
-                                   '\\\\Igswztwwgszona\\Gravity Data Archive\\')
+                                   '\\\\gs\\tucsonaz-w\\wsc\\Gravity Data Archive\\')
         if self.settings.value('fieldsheet_dir') is None:
             self.settings.setValue('fieldsheet_dir',
-                                   '\\\\Igswztwwgszona\\Gravity Data Archive\\')
+                                   '\\\\gs\\tucsonaz-w\\wsc\\Gravity Data Archive\\')
         if self.settings.value('gps_dir') is None:
             self.settings.setValue('gps_dir',
-                                   '\\\\Igswztwwgszona\\Gravity Data Archive\\')
+                                   '\\\\gs\\tucsonaz-w\\wsc\\Gravity Data Archive\\')
 
     def update_fields(self):
         """
@@ -325,14 +325,18 @@ class MyApp(QMainWindow):
                 try:
                     temp_filename = filename.replace('.pdf', '')
                     filename_elems = temp_filename.split('_')
-                    if len(filename_elems) > 2:  # '' in station name
+                    if len(filename_elems) > 2:  # '_' in station name
                         station_name = filename_elems[0]
                         for i in range(len(filename_elems) - 2):
                             station_name += '_' + filename_elems[i + 1]
                     else:
                         station_name = filename_elems[0]
                     date_elems = filename_elems[-1].split('-')
-                    year, month, day = int(date_elems[0]), int(date_elems[1]), int(date_elems[2])
+                    try:
+                        year, month, day = int(date_elems[0]), int(date_elems[1]), int(date_elems[2])
+                    except:
+                        # To deal with 'a', 'b', etc. at end of fieldsheet name
+                        year, month, day = int(date_elems[0]), int(date_elems[1]), int(date_elems[2][:-1])
                     fs_date = datetime.datetime(year, month, day, 12, 0, 0)
                     if self.ui.startDateEdit.date() < fs_date < self.ui.endDateEdit.date():
                         fs_dict[(station_name, year, month, day)] = os.path.join(fs_dir, filename)

@@ -270,10 +270,10 @@ def parse(data_directory):
                     data_array.append('-999')
                 # This adds an Excel formula that looks up the correct polar motion
                 data_array.append(r"=VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswzcwwwsjeffk\Shared\Gravity\[finals.data.xlsx]Sheet1'" +
+                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\QAQC\[finals.data.xlsx]Sheet1'" +
                                   "!$F$1:$G$20000,2,FALSE)-L" + str(output_line + 2))
                 data_array.append("=VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswzcwwwsjeffk\Shared\Gravity\[finals.data.xlsx]Sheet1'" +
+                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\QAQC\[finals.data.xlsx]Sheet1'" +
                                   "!$F$1:$I$20000,4,FALSE)-M" + str(output_line + 2))
                 # Lookup red and blue laser calibrations
                 data_array.append("=VLOOKUP(S" + str(output_line + 2) +
