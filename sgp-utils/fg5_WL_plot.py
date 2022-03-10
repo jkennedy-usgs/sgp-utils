@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # fg5_WL_plot.py
 #
 # Plots gravity and groundwater level time series. Groundwater levels are retrieved automatically from NWIS via
@@ -35,7 +36,7 @@ meters = True				          # Use meters or feet
 # specify x-axis limits, instead of taking them from the data. If only gravity data are present (no water levels), the
 # date range will be taken from the gravity data.
 if consistent_date_axes:
-    x_min = datetime.datetime(2016,1,1)
+    x_min = datetime.datetime(2009,1,1)
     x_max = datetime.datetime(2021,1,1)
 
 
@@ -121,8 +122,8 @@ while i < len(grav_data):
         plt.errorbar(grav_x, grav_y, yerr=a10sd, fmt='kd')
 
         ax = plt.gca()
-        if convert_to_water:
-            ax.set_ylim(0-half_rng, 0+half_rng)
+        #if convert_to_water:
+        #    ax.set_ylim(0-half_rng, 0+half_rng)
         ax2 = ax.twinx()
 
         if nwis_data[i]['continuous_x']:
@@ -136,6 +137,7 @@ while i < len(grav_data):
             nwis_y = [meas * .3048 for meas in nwis_y]
         ax2.plot(nwis_x, nwis_y)
         ax2.invert_yaxis()
+
 
         # Remove scientific notation from axes labels
         # ax.yaxis.get_major_formatter().set_useOffset(False)

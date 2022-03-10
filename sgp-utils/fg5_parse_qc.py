@@ -35,19 +35,17 @@ def launch_gui():
     return data_directory
 
 
-def parse_data(data_directory,output_dir=None):
+def parse_data(data_directory):
     # For testing
     # data_directory = "E:\\Shared\\current\\python\\AZWSC_Gravity\\TAMA"
     # a = data_directory.split('/')
     a = os.path.split(data_directory)
     # File save name is directory plus time and date
     print(str(data_directory))
-    if output_dir:
-        od = output_dir
-    elif os.getcwd() == os.path.normpath('X:\sgp-utils\sgp-utils'):
-        od = os.path.join(os.getcwd(), 'working_dir')
+    if os.getcwd() == os.path.normpath('X:\sgp-utils\sgp-utils'):
+        wd = '/working_dir/'
     else:
-        od = os.getcwd()
+        wd = '/'
         
     if str.find(str(data_directory), 'Working') > 0:
         dd = '_Working_'
@@ -56,13 +54,13 @@ def parse_data(data_directory,output_dir=None):
     else:
         dd = '_'
 
-    filesavename = os.path.join(od, a[-1] + dd + strftime("%Y%m%d-%H%M") + '.txt')
+    filesavename = os.getcwd() + wd + a[-1] + dd + strftime("%Y%m%d-%H%M") + '.txt'
 
     # open file for overwrite (change to "r" to append)
     fout = open(filesavename, "w")
 
     # write data descriptor file header
-    fout.write("Created\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
+    fout.write("StudyArea\tCreated\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
     \tTransfer Height\tActual Height\tGradient\tNominalAP\tPolar(x)\tPolar(y)\
     \tDF File\tOL File\tClock\tBlue\tRed\tDate\tTime\tTime Offset\tGravity\tSet Scatter\
     \tPrecision\tUncertainty\tCollected\tProcessed\tBaro corr\tTransfer ht corr\
@@ -77,14 +75,20 @@ def parse_data(data_directory,output_dir=None):
             fout.write(each_element + "\t")
         fout.write('\n')
     fout.close()
-    print(f'Output file written: {filesavename}')
 
 def parse(data_directory):
+    with open(R"X:\Absolute Data\A-10\Final Data\directories_to_sync.csv") as fid:
+        dirs_to_publish = fid.read().splitlines()
     all_data = []
     output_line = 0
     inComments = 0
     # For each file in the data_directory
     for dirname, dirnames, filenames in os.walk(data_directory):
+        # print(dirname.split(os.path.sep)) 
+        if len(dirname.split(os.path.sep)) < 2:
+            continue
+        if dirname.split("\\")[1] not in dirs_to_publish:
+            continue
         if SKIP_UNPUBLISHED:
             if 'unpublished' in dirnames:
                 dirnames.remove('unpublished')
@@ -92,7 +96,7 @@ def parse(data_directory):
             fname = os.path.join(dirname, filename)
             # If the file name ends in "project.txt"
             if str.find(fname, 'project.txt') != -1:
-                # study_area = (os.path.normpath(dirname).split(os.path.sep)[4])
+                study_area = (os.path.normpath(dirname).split(os.path.sep)[4])
                 print(filename)
                 dtf = False
                 olf = False
@@ -100,7 +104,7 @@ def parse(data_directory):
                 project_file = open(fname)
                 data_descriptor = 0
                 data_array = []
-                # data_array.append(study_area)
+                data_array.append(study_area)
                 # Look for these words in the g file
                 tags = re.compile(r'Created|Setup' +
                                   r'|Transfer|Actual|Date|Time|TimeOffset|Nominal|Red' +
@@ -226,13 +230,7 @@ def parse(data_directory):
 
                     if Name_tag_found is not None or Project_tag_found is not None:
                         try:
-                            name = ''
-                            name += line_elements[1].strip()
-                            if len(line_elements) > 2:
-                                for idx, item in enumerate(line_elements):
-                                    if idx > 1:
-                                        name += '_'
-                                        name += item.strip()
+                            name = " ".join(line_elements[1:])
                             data_array.append(name)
                         except:
                             data_array.append('-999')
@@ -274,29 +272,25 @@ def parse(data_directory):
                 if version < 5:
                     data_array.append('-999')
                 # This adds an Excel formula that looks up the correct polar motion
-                data_array.append(r"=VLOOKUP(S" + str(output_line + 2) +
+                data_array.append(r"=VLOOKUP(T" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\QAQC\[finals.data.xlsx]Sheet1'" +
-                                  "!$F$1:$G$20000,2,FALSE)-L" + str(output_line + 2))
-                data_array.append("=VLOOKUP(S" + str(output_line + 2) +
+                                  "!$F$1:$G$20000,2,FALSE)" )
+                data_array.append("=VLOOKUP(T" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\QAQC\[finals.data.xlsx]Sheet1'" +
-                                  "!$F$1:$I$20000,4,FALSE)-M" + str(output_line + 2))
+                                  "!$F$1:$I$20000,4,FALSE)")
                 # Lookup red and blue laser calibrations
-                data_array.append("=VLOOKUP(S" + str(output_line + 2) +
+                data_array.append("=VLOOKUP(T" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
                                   "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,4,TRUE)-R" + str(output_line + 2))
-                data_array.append("=VLOOKUP(S" + str(output_line + 2) +
+                                  "!$A$2:$D$20,4,TRUE)")
+                data_array.append("=VLOOKUP(T" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
                                   "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,3,TRUE)-Q" + str(output_line + 2))                                  
-                data_array.append("=IF(ABS(VLOOKUP(S" + str(output_line + 2) +
+                                  "!$A$2:$D$20,3,TRUE)")                                
+                data_array.append("=VLOOKUP(T" + str(output_line + 2) +
                                   ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
                                   "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2) +
-                                  ") < 0.00001, 0, VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
-                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2) + ")")
+                                  "!$A$2:$D$20,2,TRUE)")
 
                 data_array.append(comments)
 
@@ -312,4 +306,4 @@ if __name__ == "__main__":
         directory = launch_gui()
     else:
         directory = sys.argv[1]
-    parse_data(directory, output_dir=directory)
+    parse_data(directory)

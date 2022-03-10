@@ -35,8 +35,13 @@ YAXIS_LIMITS_TIGHT = config.getboolean('Parameters', 'YAXIS_LIMITS_TIGHT')
 YAXIS_FT_OF_WATER = config.getboolean('Parameters', 'YAXIS_FT_OF_WATER')
 ERROR_BAR = float(config.get('Parameters', 'ERROR_BAR'))
 SET_XLIM = config.getboolean('Parameters', 'SET_XLIM')
-XLEFT = config.get('Parameters', 'XLEFT')
-XRIGHT = config.get('Parameters', 'XRIGHT')
+SET_YLIM = config.getboolean('Parameters', 'SET_yLIM')
+xl = str(config.get('Parameters', 'XLEFT'))
+XLEFT = parser.parse(xl)
+xr = str(config.get('Parameters', 'XRIGHT'))
+XRIGHT = parser.parse(xr)
+YTOP = int(config.get('Parameters', 'YTOP'))
+YBOTTOM = int(config.get('Parameters', 'YBOTTOM'))
 # ALTFMT = config.get('Parameters', 'ALTFMT')
 
 
@@ -79,11 +84,15 @@ def make_plot(ax, data, station_name, EB):
         for iii in range(start_year, end_year + 2):
             xticks.append(datetime.datetime(iii, 1, 1))
         ax.set_xticks(xticks)
+        
+    if SET_YLIM:
+        ax.set_ylim([YBOTTOM, YTOP])
 
-    if YAXIS_LIMITS_TIGHT == 'loose':
-        max_abs_lim = max(abs(v) for v in ax.get_ylim())
-        rounded_abs_lim = math.ceil(max_abs_lim)
-        ax.set_ylim([-1 * rounded_abs_lim, rounded_abs_lim])
+    #if YAXIS_LIMITS_TIGHT == 'loose':
+    #    max_abs_lim = max(abs(v) for v in ax.get_ylim())
+    #    rounded_abs_lim = math.ceil(max_abs_lim)
+    #    ax.set_ylim([-1 * rounded_abs_lim, rounded_abs_lim])
+        
     if YAXIS_FT_OF_WATER:
         ax.set_ylabel('Storage change,\nin feet of water')
         ax.set_title('{}'.format(station_name))
