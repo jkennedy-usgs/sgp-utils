@@ -8,6 +8,7 @@ import sys
 import tkinter
 from tkinter import filedialog
 from tkinter import Tk
+from time import strftime
 
 #import tkFileDialog
 import xml.etree.ElementTree as ET
@@ -30,10 +31,11 @@ data_directory = os.getcwd()
 def launch_gui():
     root = Tk()
     root.withdraw()
-    data_directory = filedialog.askdirectory(
-        parent=root, initialdir=os.getcwd())
-
-    files = parse_directory(data_directory)
+    files = filedialog.askopenfilenames(
+        parent=root, 
+        initialdir=os.getcwd(),
+        filetypes=[('xml','.xml')]
+        )
     return files
 
 def parse_directory(data_directory):
@@ -45,15 +47,14 @@ def parse_directory(data_directory):
     return files
 
 
-def parse_files(files):
-    if filesavename:
-        with open(filesavename, "w+") as fid:
-            fid.write("File,Date,Datum,Latitude,Longitude,Ellipsoid height,")
-            fid.write("Orthometric height,Easting,Northing,")
-            fid.write("x uncertainty,y uncertainty,z uncertainty\n")
-            for file in files:
-                line1 = parse_file(file)
-                fid.write(line1 + '\n')
+def parse_files(files, file):
+    with open(file, "w+") as fid:
+        fid.write("File,Date,Datum,Latitude,Longitude,Ellipsoid height,")
+        fid.write("Orthometric height,Easting,Northing,")
+        fid.write("x uncertainty,y uncertainty,z uncertainty\n")
+        for file in files:
+            line1 = parse_file(file)
+            fid.write(line1 + '\n')
 
 
 def parse_file(fname):
@@ -98,6 +99,9 @@ def parse_file(fname):
             z_unc = i.attrib["UNCERTAINTY"]
     line += f'{x_unc},{y_unc},{z_unc}'
     return line
+    
+def get_filesavename(data_directory):
+    return os.path.join(data_directory, f'OPUS_results_{strftime("%Y-%m-%d-%H%M")}.csv')    
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -109,5 +113,5 @@ if __name__ == "__main__":
             files = fid.read().splitlines()
     data_directory = os.path.dirname(files[0].replace('"',''))
     print(data_directory)
-    filesavename = os.path.join(data_directory, f'OPUS_results_{os.path.basename(data_directory)}.csv')
-    parse_files(files)
+    filesavename = get_filesavename(data_directory)
+    parse_files(files, filesavename)

@@ -210,13 +210,14 @@ if __name__ == "__main__":
             fname = os.path.join(dirname, filename)
             # If the file name ends in "project.txt"
             if fname.find('project.txt') != -1:
+                print(fname)
                 station = project_file_stationname(fname)
                 status, orig_corr = project_file_check_status(fname)
                 dt = project_file_get_date(fname)
                 drift_rate, elapsed_days, laser_error = get_laser_corr(dt, drift_xl_sheet)
                 if status == 'done':
                     # a laser correction has previously been applied
-                    if abs(orig_corr - laser_error) < 0.05:
+                    if abs(orig_corr - laser_error) < 0.02:
                         # check that it matches the current best value
                         print(f'{filename}: Correct ccrrection already applied')
                         continue
@@ -224,16 +225,16 @@ if __name__ == "__main__":
                         # It's different. Remove the old and apply the new
                         remove_old_correction(fname, orig_corr)
                         remove_old_drift_comment(fname)
-                        print(f'{filename}: Correction updated. Old = {orig_corr}, New = {laser_error}')
+                        print(f'{filename}: Correction updated. Old = {orig_corr:.2f}, New = {laser_error:.2f}')
                         update_file(fid, fname, drift_rate, elapsed_days, laser_error)
                 if status == 'check':
                     # previously no correction was applied, if there's one available now, apply it
                     if abs(laser_error) > 0.01:
                         remove_old_drift_comment(fname)
                         update_file(fid, fname, drift_rate, elapsed_days, laser_error)
-                        print(f'{filename}: Prior correction was zero. New correction = {laser_error}')
+                        print(f'{filename}: Prior correction was zero. New correction = {laser_error:.2f}')
                 if status == 'update':
                     update_file(fid, fname, drift_rate, elapsed_days, laser_error)
-                    print(f'{filename}: No prior correction. New correction = {laser_error}')
+                    print(f'{filename}: No prior correction. New correction = {laser_error:.2f}')
 
     fid.close()
