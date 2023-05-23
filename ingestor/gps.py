@@ -64,5 +64,5 @@ class GPS_data:
         if len(stationname) >= 4:
             sn = stationname[:4]
         else:
-            sn = stationname + 'x' * 4 - (len(stationname))
+            sn = stationname + 'x' * (4 - len(stationname))
         self.rinex_filename = sn + self.doy + self.hour_as_letter + self.year_suffix
