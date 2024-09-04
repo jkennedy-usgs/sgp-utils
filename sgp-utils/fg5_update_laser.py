@@ -2,14 +2,18 @@
 # coding: utf-8
 
 # Script to update g values in FG-5/A-10 .project.txt files with laser drift correction.
-# 
-# The script works on project.txt files in a specified directory (and subdirectories). The g value in each
-# .project.txt file is updated, and a comment added that describes the magnitude of the correction. The original
-# .project.txt file is copied to a new file, where 'project.txt' in the filename is replaced with 'original.txt'.
-# 
-# Laser drift corrections are taken from an Excel workbook, specified as a parameter in the script.
+#
+# The script works on project.txt files in a specified directory (and
+# subdirectories). The g value in each .project.txt file is updated, and a comment
+# added that describes the magnitude of the correction. The original .project.txt
+# file is copied to a new file, where 'project.txt' in the filename is replaced with
+# 'original.txt'.
+#
+# Laser drift corrections are taken from an Excel workbook, specified as a parameter
+# in the script.
 
-# A csv-file summary of the corrections is written, with the filename "Corrections_YYYY-MM-DD.csv"
+# A csv-file summary of the corrections is written, with the filename
+# "Corrections_YYYY-MM-DD.csv"
 
 # Scenarios:
 #
@@ -22,7 +26,7 @@
 #       .project.txt file has incorrect correction: fix it
 #       .project.txt not updated: copy proj > orig (overwrite), update proj
 #
-# 
+#
 
 import os
 from tkinter import filedialog
@@ -100,7 +104,8 @@ def update_g(project_file, corr):
                         g = float(line_elements[-2])
                         microGal_symbol = line_elements[-1]
                         corr_g = g - corr  # Typically laser_corr is negative, so this makes g larger
-                        fout.write('Gravity: {:9.2f} {}\n'.format(corr_g, microGal_symbol))
+                        fout.write(
+                            'Gravity: {:9.2f} {}\n'.format(corr_g, microGal_symbol))
                     else:
                         fout.write(line)
                 else:
@@ -148,7 +153,7 @@ def update_file(fid, fname, drift_rate=0, elapsed_days=0, laser_corr=0):
 
 
 def copy_to_original_txt(fname):
-    fn = fname.replace('project','original')
+    fn = fname.replace('project', 'original')
     os.system(f'cp "{fname}" "{fn}"')
 
 
@@ -165,7 +170,8 @@ def project_file_stationname(fname):
 def append_calibration_comment(laser_corr, drift_rate, elapsed_days, fname):
     with open(fname, "a") as fout:
         if elapsed_days == 0 or abs(laser_corr) < 0.0001:
-            fout.write('Gravity value not adjusted (no valid calibration data for the time period)\n')
+            fout.write(
+                'Gravity value not adjusted (no valid calibration data for the time period)\n')
             return
         else:
             fout.write('Gravity value adjusted by ' +
@@ -192,15 +198,15 @@ if __name__ == "__main__":
     root.withdraw()
     data_directory = filedialog.askdirectory(
         parent=root, initialdir=GDA)
-    # data_directory = u'\\\\Igswztwwgszona\\Gravity Data Archive\\Absolute Data\\A-10\\Final Data\\Big Chino'
+    # data_directory = r"X:\Absolute Data\A-10\Final Data\SAN PEDRO"
 
     xl = pd.ExcelFile(laser_cal_file)
     drift_xl_sheet = xl.parse(laser_cal_worksheet)
 
     # File save name is directory plus time and date
-    fid = open('.\working_dir\Corrections_' + strftime("%Y%m%d-%H%M") + '.csv', 'w')
-    fid.write('Station,Date,Drift_corr,Drift_rate,Elapsed_days_since_cal,SM_corr,SM,SM_mean\n')
-
+    fid = open(r'.\working_dir\Corrections_' + strftime("%Y%m%d-%H%M") + '.csv', 'w')
+    fid.write(
+        'Station,Date,Drift_corr,Drift_rate,Elapsed_days_since_cal,SM_corr,SM,SM_mean\n')
 
     # For each file in the data_directory and subdirectories
     for dirname, dirnames, filenames in os.walk(data_directory):
@@ -208,13 +214,15 @@ if __name__ == "__main__":
             continue
         for filename in filenames:
             fname = os.path.join(dirname, filename)
+
             # If the file name ends in "project.txt"
             if fname.find('project.txt') != -1:
                 print(fname)
                 station = project_file_stationname(fname)
                 status, orig_corr = project_file_check_status(fname)
                 dt = project_file_get_date(fname)
-                drift_rate, elapsed_days, laser_error = get_laser_corr(dt, drift_xl_sheet)
+                drift_rate, elapsed_days, laser_error = get_laser_corr(dt,
+                                                                       drift_xl_sheet)
                 if status == 'done':
                     # a laser correction has previously been applied
                     if abs(orig_corr - laser_error) < 0.02:
@@ -225,16 +233,19 @@ if __name__ == "__main__":
                         # It's different. Remove the old and apply the new
                         remove_old_correction(fname, orig_corr)
                         remove_old_drift_comment(fname)
-                        print(f'{filename}: Correction updated. Old = {orig_corr:.2f}, New = {laser_error:.2f}')
+                        print(
+                            f'{filename}: Correction updated. Old = {orig_corr:.2f}, New = {laser_error:.2f}')
                         update_file(fid, fname, drift_rate, elapsed_days, laser_error)
                 if status == 'check':
                     # previously no correction was applied, if there's one available now, apply it
                     if abs(laser_error) > 0.01:
                         remove_old_drift_comment(fname)
                         update_file(fid, fname, drift_rate, elapsed_days, laser_error)
-                        print(f'{filename}: Prior correction was zero. New correction = {laser_error:.2f}')
+                        print(
+                            f'{filename}: Prior correction was zero. New correction = {laser_error:.2f}')
                 if status == 'update':
                     update_file(fid, fname, drift_rate, elapsed_days, laser_error)
-                    print(f'{filename}: No prior correction. New correction = {laser_error:.2f}')
+                    print(
+                        f'{filename}: No prior correction. New correction = {laser_error:.2f}')
 
     fid.close()

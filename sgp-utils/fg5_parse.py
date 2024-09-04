@@ -3,6 +3,10 @@
 Script to parse A10 files and create a tab-delimited file with the most
 important data.
 
+Reads parameters from fg5_parse.ini:
+SKIP_UNPUBLISHED: ignores files with "unpublished' in the directory path
+QC_MODE: adds extra columns; for copy/pasting into Excel QA worksheet
+
 Should work with g8 and g9.
 
 Jeff Kennedy
@@ -20,10 +24,14 @@ import configparser
 config = configparser.ConfigParser()
 config.read('fg5_parse.ini')
 SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
-
-gravity_data_archive = "E:\\Shared\\Gravity Data Archive\\Absolute Data\\A-10"
+if QC_MODE := config.getboolean('Parameters', 'QC_MODE'):
+    print("Running in QC mode (edit parse_fg5.ini to change).")
 pd = os.getcwd()
-gravity_data_archive = "X:\\Absolute Data\\A-10"
+gravity_data_archive = r"\\Igswztwwgszona\Gravity Data Archive"
+polar_motion_spreadsheet = f"'{gravity_data_archive}\\QAQC\\[finals.data.xlsx]Sheet1'"
+calibration_spreadsheet = f"'{gravity_data_archive}\\Absolute Data" + \
+                          r"\A-10\Instrument Maintenance\Calibrations" + \
+                          r"\[A10-008 clock and laser calibrations.xlsx]calibrations'"
 
 
 def launch_gui():
@@ -35,7 +43,7 @@ def launch_gui():
     return data_directory
 
 
-def parse_data(data_directory,output_dir=None):
+def parse_data(data_directory, output_dir=None):
     # For testing
     # data_directory = "E:\\Shared\\current\\python\\AZWSC_Gravity\\TAMA"
     # a = data_directory.split('/')
@@ -48,7 +56,7 @@ def parse_data(data_directory,output_dir=None):
         od = os.path.join(os.getcwd(), 'working_dir')
     else:
         od = os.getcwd()
-        
+
     if str.find(str(data_directory), 'Working') > 0:
         dd = '_Working_'
     elif str.find(str(data_directory), 'Final') > 0:
@@ -57,17 +65,20 @@ def parse_data(data_directory,output_dir=None):
         dd = '_'
 
     filesavename = os.path.join(od, a[-1] + dd + strftime("%Y%m%d-%H%M") + '.txt')
-
+    print(f'Saving {filesavename}')
     # open file for overwrite (change to "r" to append)
     fout = open(filesavename, "w")
 
     # write data descriptor file header
-    fout.write("Created\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
+    fout_string = "Created\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
     \tTransfer Height\tActual Height\tGradient\tNominalAP\tPolar(x)\tPolar(y)\
     \tDF File\tOL File\tClock\tBlue\tRed\tDate\tTime\tTime Offset\tGravity\tSet Scatter\
     \tPrecision\tUncertainty\tCollected\tProcessed\tBaro corr\tTransfer ht corr\
     \tPolar(x) error\tPolar(y) error\tRed laser error\tBlue laser err\
-    \tclock error\tComments\n")
+    \tclock error\tComments\n"
+    if QC_MODE:
+        fout_string = "StudyArea\t" + fout_string
+    fout.write(fout_string)
 
     all_data = parse(data_directory)
 
@@ -79,10 +90,11 @@ def parse_data(data_directory,output_dir=None):
     fout.close()
     print(f'Output file written: {filesavename}')
 
+
 def parse(data_directory):
     all_data = []
     output_line = 0
-    inComments = 0
+
     # For each file in the data_directory
     for dirname, dirnames, filenames in os.walk(data_directory):
         if SKIP_UNPUBLISHED:
@@ -90,21 +102,25 @@ def parse(data_directory):
                 dirnames.remove('unpublished')
         for filename in filenames:
             fname = os.path.join(dirname, filename)
+            inComments = 0
             # If the file name ends in "project.txt"
-            if str.find(fname, 'project.txt') != -1:
-                # study_area = (os.path.normpath(dirname).split(os.path.sep)[4])
-                print(filename)
-                dtf = False
-                olf = False
-                skip_grad = False
-                project_file = open(fname)
-                data_descriptor = 0
+            if str.find(fname, 'project.txt') == -1:
+                continue
+            study_area = (os.path.normpath(dirname).split(os.path.sep)[4])
+            print(filename)
+            dtf = False
+            olf = False
+            skip_grad = False
+            with open(fname) as project_file:
                 data_array = []
-                # data_array.append(study_area)
+                if QC_MODE:
+                    data_array.append(study_area)
+
                 # Look for these words in the g file
                 tags = re.compile(r'Created|Setup' +
                                   r'|Transfer|Actual|Date|Time|TimeOffset|Nominal|Red' +
                                   r'|Blue|Scatter|SetsColl|SetsProc|Precision|BarPresCorr|Total_unc')
+
                 # 'Lat' is special because there are three data on the same line:
                 # (Lat, Long, Elev)
                 Lat_tag = re.compile(r'Lat')
@@ -119,7 +135,8 @@ def parse(data_directory):
                 Project_tag = re.compile(r'Project')
                 Name_tag = re.compile(r'Name')
 
-                # Apparently using a delta file is optional, it's not always written to the .project file
+                # Apparently using a delta file is optional, it's not always written
+                # to the .project file
                 Delta_tag = re.compile(r'DFFile')
                 OL_tag = re.compile(r'OLFile')
                 Rub_tag = re.compile(r'RubFrequency')
@@ -131,12 +148,26 @@ def parse(data_directory):
 
                 # This deals with multi-line comments
                 Comment_tag = re.compile(r'Comments')
+                comments = ''
 
                 for line in project_file:
                     # Change up some text in the g file to make it easier to parse
                     # (remove duplicates, etc.)
                     line = str.strip(line)
                     line = str.replace(line, '\n\n', '\n')
+
+                    Comment_tag_found = re.search(Comment_tag, line)
+                    if inComments:
+                        if comments == '':
+                            comments = line
+                        else:
+                            comments += ' | '
+                            comments += line
+                        continue
+                    elif Comment_tag_found is not None:
+                        inComments = True
+                        continue
+
                     line = str.replace(line, ":  ", ": ")
                     # Repeat to take care of ":   " (three spaces)
                     line = str.replace(line, ":  ", ": ")
@@ -150,7 +181,8 @@ def parse(data_directory):
                     line = str.replace(line, "Delta Factor Filename:", "DFFile")
                     line = str.replace(line, "Ocean Load ON, Filename:", "OLFile")
                     line = str.replace(line, "Nominal Air Pressure:", "Nominal")
-                    line = str.replace(line, "Barometric Admittance Factor:", "Admittance")
+                    line = str.replace(line, "Barometric Admittance Factor:",
+                                       "Admittance")
                     line = str.replace(line, " Motion Coord:", "")
                     line = str.replace(line, "Set Scatter:", "Scatter")
                     line = str.replace(line, "Offset:", "ofst")
@@ -165,7 +197,8 @@ def parse(data_directory):
                     line = str.replace(line, "Gravity:", "Grv:")
                     line = str.replace(line, "Number of Sets Collected:", "SetsColl")
                     line = str.replace(line, "Number of Sets Processed:", "SetsProc")
-                    line = str.replace(line, "Polar Motion:", "PolMotC")  # This is the PM error, not the values
+                    # This is the PM error, not the values
+                    line = str.replace(line, "Polar Motion:", "PolMotC")
                     line = str.replace(line, "Barometric Pressure:", "BarPresCorr")
                     line = str.replace(line, "System Setup:", "")
                     line = str.replace(line, "Total Uncertainty:", "Total_unc")
@@ -178,7 +211,6 @@ def parse(data_directory):
                     tags_found = re.search(tags, line)
                     Lat_tag_found = re.search(Lat_tag, line)
                     Pol_tag_found = re.search(Pol_tag, line)
-                    Comment_tag_found = re.search(Comment_tag, line)
                     Version_tag_found = re.search(Version_tag, line)
                     Delta_tag_found = re.search(Delta_tag, line)
                     OL_tag_found = re.search(OL_tag, line)
@@ -196,7 +228,8 @@ def parse(data_directory):
                         if not skip_grad:
                             data_array.append(line_elements[1])
 
-                    # Old g versions don't output Time Offset, which comes right before gravity
+                    # Old g versions don't output Time Offset, which comes right
+                    # before gravity
                     if Grav_tag_found is not None:
                         if version < 5:
                             data_array.append('-999')
@@ -226,13 +259,7 @@ def parse(data_directory):
 
                     if Name_tag_found is not None or Project_tag_found is not None:
                         try:
-                            name = ''
-                            name += line_elements[1].strip()
-                            if len(line_elements) > 2:
-                                for idx, item in enumerate(line_elements):
-                                    if idx > 1:
-                                        name += '_'
-                                        name += item.strip()
+                            name = " ".join(line_elements[1:])
                             data_array.append(name)
                         except:
                             data_array.append('-999')
@@ -247,8 +274,9 @@ def parse(data_directory):
                         data_array.append(line_elements[1])
                         data_array.append(line_elements[3])
                         data_array.append(line_elements[5])
-                        # This accommodates old versions of g. If these data are to be published,
-                        # though, they should be reprocessed in a more recent version.
+                        # This accommodates old versions of g. If these data are to
+                        # be published, though, they should be reprocessed in a more
+                        # recent version.
                         if version < 5:
                             data_array.append('-999')  # Setup Height
                             data_array.append('-999')  # Transfer Height
@@ -273,35 +301,52 @@ def parse(data_directory):
                 # Old g versions don't output transfer height correction
                 if version < 5:
                     data_array.append('-999')
+
                 # This adds an Excel formula that looks up the correct polar motion
-                data_array.append(r"=VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\QAQC\[finals.data.xlsx]Sheet1'" +
-                                  "!$F$1:$G$20000,2,FALSE)-L" + str(output_line + 2))
-                data_array.append("=VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\QAQC\[finals.data.xlsx]Sheet1'" +
-                                  "!$F$1:$I$20000,4,FALSE)-M" + str(output_line + 2))
-                # Lookup red and blue laser calibrations
-                data_array.append("=VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
-                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,4,TRUE)-R" + str(output_line + 2))
-                data_array.append("=VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
-                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,3,TRUE)-Q" + str(output_line + 2))                                  
-                data_array.append("=IF(ABS(VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
-                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2) +
-                                  ") < 0.00001, 0, VLOOKUP(S" + str(output_line + 2) +
-                                  ",'\\\\Igswztwwgszona\Gravity Data Archive\Absolute Data\A-10\Instrument Maintenance" +
-                                  "\Calibrations\[A10-008 clock and laser calibrations.xlsx]calibrations'" +
-                                  "!$A$2:$D$20,2,TRUE)-P" + str(output_line + 2) + ")")
+                if not QC_MODE:
+                    # In non-QC_MODE, write the difference between the value used
+                    # and the true value
+                    data_array.append(
+                        r"=VLOOKUP(S{0},{1}!$F$1:$G$20000,2,FALSE)-L{2}".format(
+                            str(output_line + 2), polar_motion_spreadsheet,
+                            str(output_line + 2)))
+                    data_array.append(
+                        "=VLOOKUP(S{0},{1}!$F$1:$I$20000,4,FALSE)-M{2}".format(
+                            str(output_line + 2), polar_motion_spreadsheet,
+                            str(output_line + 2)))
+                    # Lookup red and blue laser calibrations
+                    data_array.append(
+                        "=VLOOKUP(S{0},{1}!$A$2:$E$200,5,TRUE)-R{2}".format(
+                            str(output_line + 2), calibration_spreadsheet,
+                            str(output_line + 2)))
+                    data_array.append(
+                        "=VLOOKUP(S{0},{1}!$A$2:$E$200,4,TRUE)-Q{2}".format(
+                            str(output_line + 2), calibration_spreadsheet,
+                            str(output_line + 2)))
+                    data_array.append(
+                        "=IF(ABS(VLOOKUP(S{0},{1}!$A$2:$E$200,2,TRUE)-P{2}) < 0.00001, 0, VLOOKUP(S{3},{4}!$A$2:$E$200,3,TRUE)-P{5})".format(
+                            output_line + 2, calibration_spreadsheet,
+                            output_line + 2, output_line + 2,
+                            calibration_spreadsheet, output_line + 2))
+                else:
+                    # In QC_MODE, write the true value
+                    data_array.append(
+                        r"=VLOOKUP(T{0},{1}!$F$1:$G$20000,2,FALSE)".format(
+                            output_line + 2, polar_motion_spreadsheet))
+                    data_array.append(
+                        "=VLOOKUP(T{0},{1}!$F$1:$I$20000,4,FALSE)".format(
+                            output_line + 2, polar_motion_spreadsheet))
+                    # Lookup red and blue laser calibrations
+                    data_array.append("=VLOOKUP(T{0},{1}!$A$2:$E$200,5,TRUE)".format(
+                        output_line + 2, calibration_spreadsheet))
+                    data_array.append("=VLOOKUP(T{0},{1}!$A$2:$E$200,4,TRUE)".format(
+                        output_line + 2, calibration_spreadsheet))
+                    # Lookup clock calibration
+                    data_array.append("=VLOOKUP(T{0},{1}!$A$2:$E$200,3,TRUE)".format(
+                        output_line + 2, calibration_spreadsheet))
 
                 data_array.append(comments)
-
-                project_file.close()
-                output_line = output_line + 1
+                output_line += 1
                 all_data.append(data_array)
     return all_data
 

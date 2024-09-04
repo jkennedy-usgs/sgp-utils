@@ -1,5 +1,5 @@
-#! python3 
-# Plot_A10.py
+#! python3
+# fg5_plot.py
 #
 # Takes output file from Parse_A10 (.txt) and generates time-series plots.
 #
@@ -42,6 +42,8 @@ xr = str(config.get('Parameters', 'XRIGHT'))
 XRIGHT = parser.parse(xr)
 YTOP = int(config.get('Parameters', 'YTOP'))
 YBOTTOM = int(config.get('Parameters', 'YBOTTOM'))
+
+
 # ALTFMT = config.get('Parameters', 'ALTFMT')
 
 
@@ -84,15 +86,15 @@ def make_plot(ax, data, station_name, EB):
         for iii in range(start_year, end_year + 2):
             xticks.append(datetime.datetime(iii, 1, 1))
         ax.set_xticks(xticks)
-        
+
     if SET_YLIM:
         ax.set_ylim([YBOTTOM, YTOP])
 
-    #if YAXIS_LIMITS_TIGHT == 'loose':
+    # if YAXIS_LIMITS_TIGHT == 'loose':
     #    max_abs_lim = max(abs(v) for v in ax.get_ylim())
     #    rounded_abs_lim = math.ceil(max_abs_lim)
     #    ax.set_ylim([-1 * rounded_abs_lim, rounded_abs_lim])
-        
+
     if YAXIS_FT_OF_WATER:
         ax.set_ylabel('Storage change,\nin feet of water')
         ax.set_title('{}'.format(station_name))
@@ -103,7 +105,8 @@ def make_plot(ax, data, station_name, EB):
 
 def launch_gui():
     # Open dialog to specify input file. Alternatively, specify file directly.
-    data_file = filedialog.askopenfilename(title="Select text file to plot (from A10_parse.py)")
+    data_file = filedialog.askopenfilename(
+        title="Select text file to plot (from A10_parse.py)")
     return data_file
 
 
@@ -126,7 +129,7 @@ def plot_g(data_file):
 
     # Initialize blank array to hold data. First array of each list element is date, second is gravity.
     data = [[[], []]]
-    for i in range(len(stations)-1):
+    for i in range(len(stations) - 1):
         data.append([[], []])
 
     # Get data from input file
@@ -142,23 +145,23 @@ def plot_g(data_file):
 
     if YAXIS_FT_OF_WATER:
         for d in data:
-            d[1] = [s/12.77 for s in d[1]]
+            d[1] = [s / 12.77 for s in d[1]]
             eb = ERROR_BAR / 12.77
     else:
         eb = ERROR_BAR
 
-    nfigs = len(data)//4    # floor division: returns integer
+    nfigs = len(data) // 4  # floor division: returns integer
     if len(data) % 4 != 0:  # modulo
         nfigs += 1
 
     for i in range(nfigs):
         plt.figure(figsize=(8.5, 11))
-        figidx = i*4
+        figidx = i * 4
         for ii in range(4):
-            if figidx+ii < len(data):
-                if data[figidx+ii][0][0]:
-                    ax = plt.subplot(4, 1, ii+1)
-                    make_plot(ax, data[figidx+ii], stations[figidx+ii], eb)
+            if figidx + ii < len(data):
+                if data[figidx + ii][0][0]:
+                    ax = plt.subplot(4, 1, ii + 1)
+                    make_plot(ax, data[figidx + ii], stations[figidx + ii], eb)
 
                     plt.draw()
             plt.show()
