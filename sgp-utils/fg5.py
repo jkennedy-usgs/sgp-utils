@@ -1,13 +1,35 @@
-import string
+"""
+file/a10.py
+===============
+
+GSadjust object for absolute gravity observation
+-------------------------------------------------------------------------------
+
+Used to parse .project.txt files generated my Micro-g absolute-gravity meters
+
+This software is preliminary, provisional, and is subject to revision. It is
+being provided to meet the need for timely best science. The software has not
+received final approval by the U.S. Geological Survey (USGS). No warranty,
+expressed or implied, is made by the USGS or the U.S. Government as to the
+functionality of the software and related material nor shall the fact of release
+constitute any such warranty. The software is provided on the condition that
+neither the USGS nor the U.S. Government shall be held liable for any damages
+resulting from the authorized or unauthorized use of the software.
+"""
+
 import re
 
 
-class FG5(object, fn=None):
-    def __init__(self):
+class A10:
+    """
+    GSadjust object for absolute gravity observation
+    """
+
+    def __init__(self, fn=None):
         self.created = None
         self.project = None
         self.stationname = None
-        self.lat = float
+        self.lat = None
         self.long = None
         self.elev = None
         self.setupht = None
@@ -37,81 +59,91 @@ class FG5(object, fn=None):
             self.read_project_dot_txt(fn)
 
     def read_project_dot_txt(self, filename):
+        """
+        Read an A10 project.txt file, storing the result on this object.
+        """
         dtf = False
         olf = False
         skip_grad = False
-        # in_comments = 0
-        project_file = open(filename)
+        in_comments = 0
+        project_file = open(filename, "r", encoding="unicode_escape")
         data_array = []  # ['a']*32
-        # Look for these words in the g file
-        tags = re.compile(r'Created|Setup' +
-                          r'|Transfer|Actual|Date|Time|TimeOffset|Nominal|Red' +
-                          r'|Blue|Scatter|SetsColl|SetsProc|Precision|Total_unc')
+        # Look for these words in the g file.
+        tags = re.compile(
+            r"Project|Name|Created|Setup|SN"
+            r"|Transfer|Actual|Date|Time|TimeOffset|Nominal|Red"
+            r"|Blue|Scatter|SetsColl|SetsProc|Precision|Total_unc"
+        )
         # 'Lat' is special because there are three data on the same line:
         # (Lat, Long, Elev)
-        lat_tag = re.compile(r'Lat')
+        lat_tag = re.compile(r"Lat")
 
-        # 'Polar' is also special, for the same reason
-        pol_tag = re.compile(r'Polar')
+        # 'Polar' is also special, for the same reason.
+        pol_tag = re.compile(r"Polar")
 
-        version_tag = re.compile(r'Version')
+        version_tag = re.compile(r"Version")
+        version = 0
 
-        # Apparently using a delta file is optional, it's not always written to the .project file
-        delta_tag = re.compile(r'DFFile')
-        ol_tag = re.compile(r'OLFile')
-        rub_tag = re.compile(r'RubFrequency')
-        grav_tag = re.compile(r'Grv')
-        grad_tag = re.compile(r'Gradient')
+        # Apparently using a delta file is optional, it's not always written to the
+        # .project file.
+        delta_tag = re.compile(r"DFFile")
+        ol_tag = re.compile(r"OLFile")
+        rub_tag = re.compile(r"RubFrequency")
+        grav_tag = re.compile(r"Grv")
+        grad_tag = re.compile(r"Gradient")
 
-        # This one, because "Gradient:" is repeated exactly in this section
-        unc_tag = re.compile(r'Uncertainties')
+        # This one, because "Gradient:" is repeated exactly in this section.
+        unc_tag = re.compile(r"Uncertainties")
 
         # This deals with multi-line comments
-        comment_tag = re.compile(r'Comments')
+        comment_tag = re.compile(r"Comments")
+        comments = ""
 
         for line in project_file:
             # Change up some text in the g file to make it easier to parse
             # (remove duplicates, etc.)
-            line = string.strip(line)
-            line = string.replace(line, '\n\n', '\n')
-            line = string.replace(line, ":  ", ": ")
-            # Repeat to take care of ":   " (three spaces)
-            line = string.replace(line, ":  ", ": ")
-            line = string.replace(line, ":  ", ": ")
-            line = string.replace(line, "g Acquisition Version", "Acq")
-            line = string.replace(line, "g Processing ", "")
-            line = string.replace(line, "Project Name:", "Project")
-            line = string.replace(line, "File Created:", "Created")
-            line = string.replace(line, 'Gravity Corrections', 'grvcorr')
-            line = string.replace(line, " Height:", ":")
-            line = string.replace(line, "Delta Factor Filename:", "DFFile")
-            line = string.replace(line, "Ocean Load ON, Filename:", "OLFile")
-            line = string.replace(line, "Nominal Air Pressure:", "Nominal")
-            line = string.replace(line, "Barometric Admittance Factor:", "Admittance")
-            line = string.replace(line, " Motion Coord:", "")
-            line = string.replace(line, "Set Scatter:", "Scatter")
-            line = string.replace(line, "Offset:", "ofst")
-            line = string.replace(line, "Time Offset (D h:m:s):", "TimeOffset")
-            line = string.replace(line, "Ocean Load:", "OLC")
-            line = string.replace(line, "Rubidium Frequency:", "RubFrequency")
-            line = string.replace(line, "Blue Lock:", "Blue")
-            line = string.replace(line, "Red Lock:", "Red")
-            line = string.replace(line, "Red/Blue Separation:", "Separation")
-            line = string.replace(line, "Red/Blue Interval:", "Interval")
-            line = string.replace(line, "Gravity Corrections", "Corrections")
-            line = string.replace(line, "Gravity:", "Grv:")
-            line = string.replace(line, "Number of Sets Collected:", "SetsColl")
-            line = string.replace(line, "Number of Sets Processed:", "SetsProc")
-            line = string.replace(line, "Polar Motion:", "PolMotC")  # This is the PM error, not the values
-            line = string.replace(line, "Barometric Pressure:", "")
-            line = string.replace(line, "System Setup:", "")
-            line = string.replace(line, "Total Uncertainty:", "Total_unc")
-            line = string.replace(line, "Measurement Precision:", "Precision")
-            line = string.replace(line, ":", "", 1)
-            line = string.replace(line, ",", "")
-            line_elements = string.split(line, " ")
+            line = line.strip()
+            line = line.replace("\n\n", "\n")
+            line = line.replace(":  ", ": ")
+            # Repeat to take care of ":   " (three spaces).
+            line = line.replace(":  ", ": ")
+            line = line.replace(":  ", ": ")
+            line = line.replace("g Acquisition Version", "Acq")
+            line = line.replace("g Processing ", "")
+            line = line.replace("Project Name:", "Project")
+            line = line.replace("File Created:", "Created")
+            line = line.replace("Gravity Corrections", "grvcorr")
+            line = line.replace(" Height:", ":")
+            line = line.replace("Delta Factor Filename:", "DFFile")
+            line = line.replace("Ocean Load ON, Filename:", "OLFile")
+            line = line.replace("Nominal Air Pressure:", "Nominal")
+            line = line.replace("Barometric Admittance Factor:", "Admittance")
+            line = line.replace(" Motion Coord:", "")
+            line = line.replace("Set Scatter:", "Scatter")
+            line = line.replace("Offset:", "ofst")
+            line = line.replace("Time Offset (D h:m:s):", "TimeOffset")
+            line = line.replace("Ocean Load:", "OLC")
+            line = line.replace("Rubidium Frequency:", "RubFrequency")
+            line = line.replace("Blue Lock:", "Blue")
+            line = line.replace("Red Lock:", "Red")
+            line = line.replace("Red/Blue Separation:", "Separation")
+            line = line.replace("Red/Blue Interval:", "Interval")
+            line = line.replace("Gravity Corrections", "Corrections")
+            line = line.replace("Gravity:", "Grv:")
+            line = line.replace("Number of Sets Collected:", "SetsColl")
+            line = line.replace("Number of Sets Processed:", "SetsProc")
+            # This is the PM error, not the values.
+            line = line.replace("Polar Motion:", "PolMotC")
+            line = line.replace("Barometric Pressure:", "")
+            line = line.replace("System Setup:", "")
+            line = line.replace("Total Uncertainty:", "Total_unc")
+            line = line.replace("Measurement Precision:", "Precision")
+            line = line.replace("Meter S/N:", "SN")
+            line = line.replace(":", "", 1)
+            line = line.replace(",", "")
+            line_elements = line.split(" ")
 
-            # Look for tags
+            # Look for tags.
             tags_found = re.search(tags, line)
             lat_tag_found = re.search(lat_tag, line)
             pol_tag_found = re.search(pol_tag, line)
@@ -131,10 +163,10 @@ class FG5(object, fn=None):
                 if not skip_grad:
                     data_array.append(line_elements[1])
 
-            # Old g versions don't output Time Offset, which comes right before gravity
+            # Old g versions don't output Time Offset, which comes right before gravity.
             if grav_tag_found is not None:
                 if version < 5:
-                    data_array.append('-999')
+                    data_array.append("-999")
                 data_array.append(line_elements[1])
 
             if delta_tag_found is not None:
@@ -149,11 +181,11 @@ class FG5(object, fn=None):
                 if dtf:
                     data_array.append(df)
                 else:
-                    data_array.append('-999')
+                    data_array.append("-999")
                 if olf:
                     data_array.append(of)
                 else:
-                    data_array.append('-999')
+                    data_array.append("-999")
                 data_array.append(line_elements[1])
 
             if version_tag_found is not None:
@@ -163,7 +195,7 @@ class FG5(object, fn=None):
                 try:
                     data_array.append(line_elements[1])
                 except:
-                    data_array.append('-999')
+                    data_array.append("-999")
 
             if lat_tag_found is not None:
                 data_array.append(line_elements[1])
@@ -172,9 +204,9 @@ class FG5(object, fn=None):
                 # This accomodates old versions of g. If these data are to be published,
                 # though, they should be reprocessed in a more recent version.
                 if version < 5:
-                    data_array.append('-999')  # Setup Height
-                    data_array.append('-999')  # Transfer Height
-                    data_array.append('-999')  # Actual Height
+                    data_array.append("-999")  # Setup Height.
+                    data_array.append("-999")  # Transfer Height.
+                    data_array.append("-999")  # Actual Height.
 
             if pol_tag_found is not None:
                 data_array.append(line_elements[1])
@@ -183,46 +215,49 @@ class FG5(object, fn=None):
             if in_comments > 0:
                 comments += line
                 if in_comments > 1:
-                    comments += ' | '
+                    comments += " | "
                 in_comments += in_comments
 
             if comment_tag_found is not None:
                 in_comments = 1
-                comments = ''
 
         data_array.append(comments)
 
-        # Old g versions don't output transfer height correction
+        # Old g versions don't output transfer height correction.
         if version < 5:
-            data_array.append('-999')
+            data_array.append("-999")
         project_file.close()
 
-        self.created = data_array[0]
-        self.project = data_array[1]
-        self.stationname = data_array[2]
-        self.lat = data_array[3]
-        self.long = data_array[4]
-        self.elev = data_array[5]
-        self.setupht = data_array[6]
-        self.transferht = data_array[7]
-        self.actualht = data_array[8]
-        self.gradient = data_array[9]
-        self.nominalAP = data_array[10]
-        self.polarx = data_array[11]
-        self.polary = data_array[12]
-        self.dffile = data_array[13]
-        self.olfile = data_array[14]
-        self.clock = data_array[15]
-        self.blue = data_array[16]
-        self.red = data_array[17]
-        self.date = data_array[18]
-        self.time = data_array[19]
-        self.timeoffset = data_array[20]
-        self.gravity = data_array[21]
-        self.setscatter = data_array[22]
-        self.precision = data_array[23]
-        self.uncertainty = data_array[24]
-        self.collected = data_array[25]
-        self.processed = data_array[26]
-        self.transferhtcorr = data_array[27]
-        self.comments = data_array[28]
+        self.created = data_array.pop(0)
+        self.project = data_array.pop(0)
+        self.stationname = data_array.pop(0)
+        self.lat = data_array.pop(0)
+        self.long = data_array.pop(0)
+        self.elev = data_array.pop(0)
+        self.setupht = data_array.pop(0)
+        self.transferht = data_array.pop(0)
+        self.actualht = data_array.pop(0)
+        self.gradient = data_array.pop(0)
+        self.nominalAP = data_array.pop(0)
+        self.polarx = data_array.pop(0)
+        self.polary = data_array.pop(0)
+        self.sn = data_array.pop(0)
+        self.dffile = data_array.pop(0)
+        self.olfile = data_array.pop(0)
+        self.clock = data_array.pop(0)
+        self.blue = data_array.pop(0)[:-1]
+        self.red = data_array.pop(0)[:-1]
+        date_elems = data_array.pop(0).split("/")
+        self.date = (
+            str(int(date_elems[2]) + 2000) + "-" + date_elems[0] + "-" + date_elems[1]
+        )
+        self.time = data_array.pop(0)
+        self.timeoffset = data_array
+        self.gravity = data_array.pop(0)
+        self.setscatter = data_array.pop(0)
+        self.precision = data_array.pop(0)
+        self.uncertainty = data_array.pop(0)
+        self.collected = data_array.pop(0)
+        self.processed = data_array.pop(0)
+        self.transferhtcorr = data_array.pop(0)
+        self.comments = data_array.pop(0)

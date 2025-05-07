@@ -3,14 +3,15 @@
 
 # Script to update g values in FG-5/A-10 .project.txt files with laser drift correction.
 #
+# This is the QA version. It writes a .xslx file with various formulas to check results.
+#
 # The script works on project.txt files in a specified directory (and
 # subdirectories). The g value in each .project.txt file is updated, and a comment
 # added that describes the magnitude of the correction. The original .project.txt
 # file is copied to a new file, where 'project.txt' in the filename is replaced with
 # 'original.txt'.
 #
-# Laser drift corrections are taken from an Excel workbook, specified as a parameter
-# in the script.
+# Laser drift corrections are taken from an Excel workbook.
 
 # A csv-file summary of the corrections is written, with the filename
 # "Corrections_YYYY-MM-DD.csv"
@@ -26,7 +27,6 @@
 #       .project.txt file has incorrect correction: fix it
 #       .project.txt not updated: copy proj > orig (overwrite), update proj
 #
-#
 
 import os
 from tkinter import filedialog
@@ -35,18 +35,19 @@ import datetime
 import pandas as pd  # xlrd 1.2.0 (OR LESS, NOT HIGHER!) must also be installed
 from time import strftime
 
+from fg5 import A10
 # User-specified options
 update_laser = True
-GDA = r'X:\Absolute Data\A-10\Final Data'
-laser_cal_file = "\\\\Igswztwwgszona\\Gravity Data Archive\\Absolute Data\\A-10\\" + \
-                 "Instrument Maintenance\\Calibrations\\A10-008 clock and laser calibrations.xlsx"
-laser_cal_worksheet = "DRIFT LOOKUP TABLE"
+GDA = r'X:\\'
+# New laser cal file April 2025
+# Laser drift calculated as slope of a best-fit line. Drift rate in uGal/day is in
+# cell H2. There is one sheet per meter; the sheet name is the laser SN
+laser_cal_file = os.path.join(GDA, 'QAQC', 'Laser_calibration', 'LaserCalibration.xlsx')
 
 
 def project_file_check_status(fn):
     """
-
-    :param fn:
+    :param fn: String filename
     :return: String status
                'done' = correction applied,
     """
@@ -62,20 +63,44 @@ def project_file_check_status(fn):
                 continue
     return 'update', 0.0
 
-    # if os.path.isfile(orig_fn):
-    #     return
 
+def get_laser_corr(fg5, df):
+    """
+    We want to apply a laser correction based on the time since the last calibration and
+    the drift rate.
 
-def get_laser_corr(dt, df_drift):
-    for idx, row in df_drift.iterrows():
-        if dt > row["BEGIN"]:
-            if dt < row["END"]:
-                drift_rate = row["MPD"]
-                elapsed_days = dt - row["BEGIN"].to_pydatetime()
-                elapsed_days = float(elapsed_days.days)
-                laser_corr = elapsed_days * drift_rate
-                return drift_rate, elapsed_days, laser_corr
-    return 0, 0, 0
+    As of spring 2025, we are applying a laser drift correction based on the average
+    laser drift (slope of a best-fit line), not just the drift calculated between a
+    'before' and 'after' calibration.
+
+    The .project.txt files might not necessarily use the most recent laser calibration,
+    as calibrations happen more frequently than the template files on the laptop are
+    updated.
+
+    There are two relevant dates, that might be the same:
+        1) The date of the laser calibration that corresponds to the laser frequencies
+           in the .project.txt file. We want to pro-rate the drift based on this date.
+        2) The date of the most recent laser calibration that occurred before the
+           measurement. We report this date in the .project.txt comments as the "Date of
+           last calibration".
+    """
+    try:
+        df = df.set_index(['Red', 'Blue'])
+        matching_laser_row = df.loc[(fg5.red, fg5.blue)]
+        drift_rate = float(df.iloc[0, 5])
+        df = df.set_index('Start Date')
+        closest_prev_date = df.iloc[df.index.get_indexer([fg5.date], method='ffill')].index.values[0]
+        days_since_last_cal = (datetime.datetime.strptime(fg5.date,"%Y-%m-%d") -
+                               datetime.datetime.strptime(
+                                   closest_prev_date,
+                                   "%Y-%m-%d %H:%M:%S")).days
+        days_to_prorate_laser = (datetime.datetime.strptime(fg5.date,"%Y-%m-%d") -
+                        datetime.datetime.strptime(matching_laser_row['Start Date'], "%Y-%m-%d %H:%M:%S")).days
+        laser_corr = days_to_prorate_laser * drift_rate
+        return drift_rate, days_since_last_cal, laser_corr
+    except:
+        print('!!!!!!!!!!!! LASER CAL ERROR !!!!!!!!!!!!!!!!')
+        return 0, 0, 0
 
 
 def project_file_get_date(project_file):
@@ -91,9 +116,9 @@ def project_file_get_date(project_file):
 def update_g(project_file, corr):
     """
     Get and apply (write to project.txt file) gravity correction.
-    :param fout:
     :param project_file:
-    :return:
+    :param corr:
+    :return: None
     """
     with open('temp.txt', "w") as fout:
         with open(project_file, 'r') as fin:
@@ -193,18 +218,29 @@ def append_calibration_to_csv(laser_corr, drift_rate, elapsed_days, fid, station
               ',' + '{:.0f}'.format(elapsed_days) + '\n')
 
 
+def format_float_string(value):
+    # Convert to float
+    float_value = float(value)
+    # Format the value to have exactly 7 decimal places
+    return f"{float_value:.7f}"
+
 if __name__ == "__main__":
     root = Tk()
     root.withdraw()
     data_directory = filedialog.askdirectory(
         parent=root, initialdir=GDA)
-    # data_directory = r"X:\Absolute Data\A-10\Final Data\SAN PEDRO"
+    # data_directory = r"C:\Heritage"
 
     xl = pd.ExcelFile(laser_cal_file)
-    drift_xl_sheet = xl.parse(laser_cal_worksheet)
+    drift_sheets = dict()
+    for sheet in xl.sheet_names:
+        df = xl.parse(sheet, dtype=str)
+        df['Red'] = df['Red'].apply(format_float_string)
+        df['Blue'] = df['Blue'].apply(format_float_string)
+        drift_sheets[sheet] = df
 
     # File save name is directory plus time and date
-    fid = open(r'.\working_dir\Corrections_' + strftime("%Y%m%d-%H%M") + '.csv', 'w')
+    fid = open(os.path.join(data_directory, 'Corrections_' + strftime("%Y%m%d-%H%M") + '.csv'), 'w')
     fid.write(
         'Station,Date,Drift_corr,Drift_rate,Elapsed_days_since_cal,SM_corr,SM,SM_mean\n')
 
@@ -218,16 +254,17 @@ if __name__ == "__main__":
             # If the file name ends in "project.txt"
             if fname.find('project.txt') != -1:
                 print(fname)
+                prj_file = A10(fn=fname)
                 station = project_file_stationname(fname)
                 status, orig_corr = project_file_check_status(fname)
                 dt = project_file_get_date(fname)
-                drift_rate, elapsed_days, laser_error = get_laser_corr(dt,
-                                                                       drift_xl_sheet)
+                drift_rate, elapsed_days, laser_error = get_laser_corr(prj_file,
+                                                                       drift_sheets[prj_file.sn])
                 if status == 'done':
                     # a laser correction has previously been applied
                     if abs(orig_corr - laser_error) < 0.02:
                         # check that it matches the current best value
-                        print(f'{filename}: Correct ccrrection already applied')
+                        print(f'{filename}: Correct correction already applied')
                         continue
                     else:
                         # It's different. Remove the old and apply the new

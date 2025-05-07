@@ -19,26 +19,30 @@ import sys
 from tkinter import filedialog
 from tkinter import Tk
 from time import strftime
-import configparser
+import pandas as pd
+# import configparser
+import datetime as dt
 
-config = configparser.ConfigParser()
-config.read('fg5_parse.ini')
-SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
-if QC_MODE := config.getboolean('Parameters', 'QC_MODE'):
-    print("Running in QC mode (edit parse_fg5.ini to change).")
-pd = os.getcwd()
+#config = configparser.ConfigParser()
+#config.read('fg5_parse.ini')
+SKIP_UNPUBLISHED = True
+#SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
+#if QC_MODE := config.getboolean('Parameters', 'QC_MODE'):
+#    print("Running in QC mode (edit parse_fg5.ini to change).")
+pwd = os.getcwd()
 gravity_data_archive = r"\\Igswztwwgszona\Gravity Data Archive"
 polar_motion_spreadsheet = f"'{gravity_data_archive}\\QAQC\\[finals.data.xlsx]Sheet1'"
 calibration_spreadsheet = f"'{gravity_data_archive}\\Absolute Data" + \
                           r"\A-10\Instrument Maintenance\Calibrations" + \
                           r"\[A10-008 clock and laser calibrations.xlsx]calibrations'"
 
+pm_pars = [-1.35032E-10, 5.76387E-06, -0.120136869, 1013.251572]
 
 def launch_gui():
     root = Tk()
     root.withdraw()
     data_directory = filedialog.askdirectory(
-        parent=root, initialdir=pd)
+        parent=root, initialdir=pwd)
 
     return data_directory
 
@@ -52,7 +56,7 @@ def parse_data(data_directory, output_dir=None):
     print(str(data_directory))
     if output_dir:
         od = output_dir
-    elif os.getcwd() == os.path.normpath('X:\sgp-utils\sgp-utils'):
+    elif os.getcwd() == os.path.normpath(r'C:\sgp-utils\sgp-utils'):
         od = os.path.join(os.getcwd(), 'working_dir')
     else:
         od = os.getcwd()
@@ -64,36 +68,61 @@ def parse_data(data_directory, output_dir=None):
     else:
         dd = '_'
 
-    filesavename = os.path.join(od, a[-1] + dd + strftime("%Y%m%d-%H%M") + '.txt')
+    filesavename = os.path.join(od, a[-1] + dd + "QA_" + strftime("%Y%m%d-%H%M") + '.xlsx')
     print(f'Saving {filesavename}')
     # open file for overwrite (change to "r" to append)
-    fout = open(filesavename, "w")
+    # fout = open(filesavename, "w")
 
     # write data descriptor file header
-    fout_string = "Created\tProject\tStation Name\tLat\tLong\tElev\tSetup Height\
-    \tTransfer Height\tActual Height\tGradient\tNominalAP\tPolar(x)\tPolar(y)\
-    \tDF File\tOL File\tClock\tBlue\tRed\tDate\tTime\tTime Offset\tGravity\tSet Scatter\
-    \tPrecision\tUncertainty\tCollected\tProcessed\tBaro corr\tTransfer ht corr\
-    \tPolar(x) error\tPolar(y) error\tRed laser error\tBlue laser err\
-    \tclock error\tComments\n"
-    if QC_MODE:
-        fout_string = "StudyArea\t" + fout_string
-    fout.write(fout_string)
+    header_string = "Nominal AP check|DF check|OL check|g check|Lat check|Lon check\
+    |Elev check|Polar(x) check|Polar(y) check|Red laser check|Blue laser check\
+    |clock check|Laser correction check\
+    |Study area|Created|Project|Station Name|Lat|Lon|Elev|Setup Height\
+    |Transfer Height|Actual Height|Gradient|NominalAP|Polar(x)|Polar(y)|Meter SN\
+    |DF File|OL File|Clock|Blue|Red|Date|Time|Time Offset|Gravity|Set Scatter\
+    |Precision|Uncertainty|Collected|Processed|Baro corr|Transfer ht corr\
+    |True Polar(x)|True Polar(y)|True red laser|True blue laser\
+    |True clock|Comments\n"
+    header = header_string.split('|')
+    #if QC_MODE:
+    #    fout_string = "StudyArea\t" + fout_string
+    #fout.write(fout_string)
 
+    
     all_data = parse(data_directory)
 
-    # Write data_array to file
-    for measurement in all_data:
-        for each_element in measurement:
-            fout.write(each_element + "\t")
-        fout.write('\n')
-    fout.close()
+    out = []
+    out.append(header_string)
+    out += all_data
+    df = pd.DataFrame(all_data, columns=header)
+    writer = pd.ExcelWriter(filesavename,
+                            engine='xlsxwriter',
+                            datetime_format='m/d/yyyy',
+                            engine_kwargs={'options': {'strings_to_numbers': True}})
+
+    df.to_excel(writer, sheet_name='Data', index=False)
+    # workbook = writer.book
+    # worksheet = writer.sheets['Data']
+    #
+    # formatdict = {'num_format': 'mm/dd/yyyy'}
+    # fmt = workbook.add_format(formatdict)
+    #
+    # worksheet.set_column('AG:AG', None, fmt)
+
+    writer.close()
+    # Write data_row to file
+    #for measurement in all_data:
+    #    for each_element in measurement:
+    #       fout.write(each_element + "\t")
+    #    fout.write('\n')
+    #fout.close()
     print(f'Output file written: {filesavename}')
 
 
 def parse(data_directory):
     all_data = []
-    output_line = 0
+    # counter for Excel formulas
+    row = 2  # +1 for the header row, and +1 because Excel is 1-based
 
     # For each file in the data_directory
     for dirname, dirnames, filenames in os.walk(data_directory):
@@ -116,14 +145,29 @@ def parse(data_directory):
             olf = False
             skip_grad = False
             with open(fname) as project_file:
-                data_array = []
-                if QC_MODE:
-                    data_array.append(study_area)
+                data_row = []
+                data_row.append(rf'=IF(ABS(Y{row}-(T{row}^3*{pm_pars[0]}+T{row}^2*{pm_pars[1]}+T{row}*{pm_pars[2]}+{pm_pars[3]}))>0.01,1,"")')
+                data_row.append(rf'=IF(ISNUMBER(SEARCH(Q{row},AC{row})),"",1)')
+                data_row.append(rf'=IF(ISNUMBER(SEARCH(Q{row},AD{row})),"",1)')
+                data_row.append(rf'=IF($Q{row}=$Q{row-1},IF(ABS(AK{row}-AK{row-1})>50,1,""),"")')
+                data_row.append(rf'=IF($Q{row}=$Q{row-1},IF(R{row}=R{row-1},"",1),"")')
+                data_row.append(rf'=IF($Q{row}=$Q{row-1},IF(S{row}=S{row-1},"",1),"")')
+                data_row.append(rf'=IF($Q{row}=$Q{row-1},IF(T{row}=T{row-1},"",1),"")')
+                data_row.append(rf'=IF(ABS(AS{row}-Z{row})>0.005,1,"")')
+                data_row.append(rf'=IF(ABS(AT{row}-AA{row})>0.005,1,"")')
+                data_row.append(rf'=IF(ABS(AU{row}-AG{row})>0.0000000001,1,"")')
+                data_row.append(rf'=IF(ABS(AV{row}-AF{row})>0.0000000001,1,"")')
+                data_row.append(rf'=IF(ABS(AW{row}-AE{row})>0.0001, 1, "")')
+                data_row.append(rf'=IF(OR(ISNUMBER(SEARCH("Gravity value not adjusted",AW{row})), ISNUMBER(SEARCH("Gravity value adjusted",AW{row}))),"",1)')
+                data_row.append(study_area)
 
                 # Look for these words in the g file
-                tags = re.compile(r'Created|Setup' +
-                                  r'|Transfer|Actual|Date|Time|TimeOffset|Nominal|Red' +
+                tags = re.compile(r'Created|Setup|SN' +
+                                  r'|Transfer|Actual|Time|TimeOffset|Nominal|Red' +
                                   r'|Blue|Scatter|SetsColl|SetsProc|Precision|BarPresCorr|Total_unc')
+
+                # Dates need to be converted so excel can read them
+                Date_tag = re.compile(r'Date')
 
                 # 'Lat' is special because there are three data on the same line:
                 # (Lat, Long, Elev)
@@ -207,6 +251,7 @@ def parse(data_directory):
                     line = str.replace(line, "System Setup:", "")
                     line = str.replace(line, "Total Uncertainty:", "Total_unc")
                     line = str.replace(line, "Measurement Precision:", "Precision")
+                    line = str.replace(line, "Meter S/N:", "SN")
                     line = str.replace(line, ":", "", 1)
                     line = str.replace(line, ",", "")
                     line_elements = str.split(line, " ")
@@ -224,20 +269,21 @@ def parse(data_directory):
                     Rub_tag_found = re.search(Rub_tag, line)
                     Name_tag_found = re.search(Name_tag, line)
                     Project_tag_found = re.search(Project_tag, line)
+                    Date_tag_found = re.search(Date_tag, line)
 
                     if Unc_tag_found is not None:
                         skip_grad = True
 
                     if Grad_tag_found is not None:
                         if not skip_grad:
-                            data_array.append(line_elements[1])
+                            data_row.append(line_elements[1])
 
                     # Old g versions don't output Time Offset, which comes right
                     # before gravity
                     if Grav_tag_found is not None:
                         if version < 5:
-                            data_array.append('-999')
-                        data_array.append(line_elements[1])
+                            data_row.append('-999')
+                        data_row.append(line_elements[1])
 
                     if Delta_tag_found is not None:
                         dtf = True
@@ -249,14 +295,14 @@ def parse(data_directory):
 
                     if Rub_tag_found is not None:
                         if dtf:
-                            data_array.append(df)
+                            data_row.append(df)
                         else:
-                            data_array.append('-999')
+                            data_row.append('-999')
                         if olf:
-                            data_array.append(of)
+                            data_row.append(of)
                         else:
-                            data_array.append('-999')
-                        data_array.append(line_elements[1])
+                            data_row.append('-999')
+                        data_row.append(line_elements[1])
 
                     if Version_tag_found is not None:
                         version = float(line_elements[1])
@@ -264,33 +310,36 @@ def parse(data_directory):
                     if Name_tag_found is not None or Project_tag_found is not None:
                         try:
                             name = " ".join(line_elements[1:])
-                            data_array.append(name)
+                            data_row.append(name)
                         except:
-                            data_array.append('-999')
+                            data_row.append('-999')
 
                     if tags_found is not None:
                         try:
-                            data_array.append(line_elements[1])
+                            data_row.append(line_elements[1])
                         except:
-                            data_array.append('-999')
+                            data_row.append('-999')
+
+                    if Date_tag_found is not None:
+                        data_row.append(dt.datetime.strptime(line_elements[1],"%m/%d/%y")) #.strftime('%m/%d/%Y'))
 
                     if Lat_tag_found is not None:
-                        data_array.append(line_elements[1])
-                        data_array.append(line_elements[3])
-                        data_array.append(line_elements[5])
+                        data_row.append(line_elements[1])
+                        data_row.append(line_elements[3])
+                        data_row.append(line_elements[5])
                         # This accommodates old versions of g. If these data are to
                         # be published, though, they should be reprocessed in a more
                         # recent version.
                         if version < 5:
-                            data_array.append('-999')  # Setup Height
-                            data_array.append('-999')  # Transfer Height
-                            data_array.append('-999')  # Actual Height
+                            data_row.append('-999')  # Setup Height
+                            data_row.append('-999')  # Transfer Height
+                            data_row.append('-999')  # Actual Height
 
                     if Pol_tag_found is not None:
-                        data_array.append(line_elements[1])
-                        data_array.append(line_elements[3])
+                        data_row.append(line_elements[1])
+                        data_row.append(line_elements[3])
                         # if version < 5:
-                        #     data_array.append('-999') # delta factor filename
+                        #     data_row.append('-999') # delta factor filename
 
                     if inComments > 0:
                         comments = comments + line
@@ -304,54 +353,21 @@ def parse(data_directory):
 
                 # Old g versions don't output transfer height correction
                 if version < 5:
-                    data_array.append('-999')
+                    data_row.append('-999')
 
                 # This adds an Excel formula that looks up the correct polar motion
-                if not QC_MODE:
-                    # In non-QC_MODE, write the difference between the value used
-                    # and the true value
-                    data_array.append(
-                        r"=VLOOKUP(S{0},{1}!$F$1:$G$20000,2,FALSE)-L{2}".format(
-                            str(output_line + 2), polar_motion_spreadsheet,
-                            str(output_line + 2)))
-                    data_array.append(
-                        "=VLOOKUP(S{0},{1}!$F$1:$I$20000,4,FALSE)-M{2}".format(
-                            str(output_line + 2), polar_motion_spreadsheet,
-                            str(output_line + 2)))
-                    # Lookup red and blue laser calibrations
-                    data_array.append(
-                        "=VLOOKUP(S{0},{1}!$A$2:$E$200,5,TRUE)-R{2}".format(
-                            str(output_line + 2), calibration_spreadsheet,
-                            str(output_line + 2)))
-                    data_array.append(
-                        "=VLOOKUP(S{0},{1}!$A$2:$E$200,4,TRUE)-Q{2}".format(
-                            str(output_line + 2), calibration_spreadsheet,
-                            str(output_line + 2)))
-                    data_array.append(
-                        "=IF(ABS(VLOOKUP(S{0},{1}!$A$2:$E$200,2,TRUE)-P{2}) < 0.00001, 0, VLOOKUP(S{3},{4}!$A$2:$E$200,3,TRUE)-P{5})".format(
-                            output_line + 2, calibration_spreadsheet,
-                            output_line + 2, output_line + 2,
-                            calibration_spreadsheet, output_line + 2))
-                else:
-                    # In QC_MODE, write the true value
-                    data_array.append(
-                        r"=VLOOKUP(T{0},{1}!$F$1:$G$20000,2,FALSE)".format(
-                            output_line + 2, polar_motion_spreadsheet))
-                    data_array.append(
-                        "=VLOOKUP(T{0},{1}!$F$1:$I$20000,4,FALSE)".format(
-                            output_line + 2, polar_motion_spreadsheet))
-                    # Lookup red and blue laser calibrations
-                    data_array.append("=VLOOKUP(T{0},{1}!$A$2:$E$200,5,TRUE)".format(
-                        output_line + 2, calibration_spreadsheet))
-                    data_array.append("=VLOOKUP(T{0},{1}!$A$2:$E$200,4,TRUE)".format(
-                        output_line + 2, calibration_spreadsheet))
-                    # Lookup clock calibration
-                    data_array.append("=VLOOKUP(T{0},{1}!$A$2:$E$200,3,TRUE)".format(
-                        output_line + 2, calibration_spreadsheet))
 
-                data_array.append(comments)
-                output_line += 1
-                all_data.append(data_array)
+                data_row.append(rf"=XLOOKUP(AH{row},{polar_motion_spreadsheet}!$F$1:$F$20000,{polar_motion_spreadsheet}!$G$1:$G$20000)")
+                data_row.append(rf"=XLOOKUP(AH{row},{polar_motion_spreadsheet}!$F$1:$F$20000,{polar_motion_spreadsheet}!$I$1:$I$20000)")
+                # Lookup red and blue laser calibrations
+                data_row.append(rf"=XLOOKUP(AH{row},{calibration_spreadsheet}!$A$2:$A$200,{calibration_spreadsheet}!$E$2:$E$200,0,-1)")
+                data_row.append(rf"=XLOOKUP(AH{row},{calibration_spreadsheet}!$A$2:$A$200,{calibration_spreadsheet}!$D$2:$D$200,0,-1)")
+                # Lookup clock calibration
+                data_row.append(rf"=XLOOKUP(AH{row},{calibration_spreadsheet}!$A$2:$A$200,{calibration_spreadsheet}!$C$2:$C$200,0,-1)")
+
+                data_row.append(comments)
+                row += 1
+                all_data.append(data_row)
     return all_data
 
 
@@ -361,4 +377,4 @@ if __name__ == "__main__":
         directory = launch_gui()
     else:
         directory = sys.argv[1]
-    parse_data(directory, output_dir=directory)
+    df = parse_data(directory, output_dir=directory)
