@@ -18,7 +18,7 @@ resulting from the authorized or unauthorized use of the software.
 """
 
 import re
-
+import datetime as dt
 
 class A10:
     """
@@ -261,3 +261,207 @@ class A10:
         self.processed = data_array.pop(0)
         self.transferhtcorr = data_array.pop(0)
         self.comments = data_array.pop(0)
+
+
+def project_to_list(project_file):
+    data_row = []
+    dtf = False
+    olf = False
+    skip_grad = False
+
+    # Look for these words in the g file
+    tags = re.compile(r'Created|Setup|SN' +
+                      r'|Transfer|Actual|Time|TimeOffset|Nominal|Red' +
+                      r'|Blue|Scatter|SetsColl|SetsProc|Precision|BarPresCorr|Total_unc')
+
+    # Dates need to be converted so excel can read them
+    Date_tag = re.compile(r'Date')
+
+    # 'Lat' is special because there are three data on the same line:
+    # (Lat, Long, Elev)
+    Lat_tag = re.compile(r'Lat')
+
+    # 'Polar' is also special, for the same reason
+    Pol_tag = re.compile(r'Polar')
+
+    version = 0
+    Version_tag = re.compile(r'Version')
+
+    # Need this to accommodate station names with spaces
+    Project_tag = re.compile(r'Project')
+    Name_tag = re.compile(r'Name')
+
+    # Apparently using a delta file is optional, it's not always written
+    # to the .project file
+    Delta_tag = re.compile(r'DFFile')
+    OL_tag = re.compile(r'OLFile')
+    Rub_tag = re.compile(r'RubFrequency')
+    Grav_tag = re.compile(r'Grv')
+    Grad_tag = re.compile(r'Gradient')
+
+    # This one, because "Gradient:" is repeated exactly in this section
+    Unc_tag = re.compile(r'Uncertainties')
+
+    # This deals with multi-line comments
+    inComments = False
+    Comment_tag = re.compile(r'Comments')
+    comments = ''
+
+    for line in project_file:
+        # Change up some text in the g file to make it easier to parse
+        # (remove duplicates, etc.)
+        line = str.strip(line)
+        line = str.replace(line, '\n\n', '\n')
+
+        Comment_tag_found = re.search(Comment_tag, line)
+        if inComments:
+            if comments == '':
+                comments = line
+            else:
+                comments += ' | '
+                comments += line
+            continue
+        elif Comment_tag_found is not None:
+            inComments = True
+            continue
+
+        line = str.replace(line, ":  ", ": ")
+        # Repeat to take care of ":   " (three spaces)
+        line = str.replace(line, ":  ", ": ")
+        line = str.replace(line, ":  ", ": ")
+        line = str.replace(line, "g Acquisition Version", "Acq")
+        line = str.replace(line, "g Processing ", "")
+        line = str.replace(line, "Project Name:", "Project")
+        line = str.replace(line, "File Created:", "Created")
+        line = str.replace(line, 'Gravity Corrections', 'grvcorr')
+        line = str.replace(line, " Height:", ":")
+        line = str.replace(line, "Delta Factor Filename:", "DFFile")
+        line = str.replace(line, "Ocean Load ON, Filename:", "OLFile")
+        line = str.replace(line, "Nominal Air Pressure:", "Nominal")
+        line = str.replace(line, "Barometric Admittance Factor:",
+                           "Admittance")
+        line = str.replace(line, " Motion Coord:", "")
+        line = str.replace(line, "Set Scatter:", "Scatter")
+        line = str.replace(line, "Offset:", "ofst")
+        line = str.replace(line, "Time Offset (D h:m:s):", "TimeOffset")
+        line = str.replace(line, "Ocean Load:", "OLC")
+        line = str.replace(line, "Rubidium Frequency:", "RubFrequency")
+        line = str.replace(line, "Blue Lock:", "Blue")
+        line = str.replace(line, "Red Lock:", "Red")
+        line = str.replace(line, "Red/Blue Separation:", "Separation")
+        line = str.replace(line, "Red/Blue Interval:", "Interval")
+        line = str.replace(line, "Gravity Corrections", "Corrections")
+        line = str.replace(line, "Gravity:", "Grv:")
+        line = str.replace(line, "Number of Sets Collected:", "SetsColl")
+        line = str.replace(line, "Number of Sets Processed:", "SetsProc")
+        # This is the PM error, not the values
+        line = str.replace(line, "Polar Motion:", "PolMotC")
+        line = str.replace(line, "Barometric Pressure:", "BarPresCorr")
+        line = str.replace(line, "System Setup:", "")
+        line = str.replace(line, "Total Uncertainty:", "Total_unc")
+        line = str.replace(line, "Measurement Precision:", "Precision")
+        line = str.replace(line, "Meter S/N:", "SN")
+        line = str.replace(line, ":", "", 1)
+        line = str.replace(line, ",", "")
+        line_elements = str.split(line, " ")
+
+        # Look for tags
+        tags_found = re.search(tags, line)
+        Lat_tag_found = re.search(Lat_tag, line)
+        Pol_tag_found = re.search(Pol_tag, line)
+        Version_tag_found = re.search(Version_tag, line)
+        Delta_tag_found = re.search(Delta_tag, line)
+        OL_tag_found = re.search(OL_tag, line)
+        Grav_tag_found = re.search(Grav_tag, line)
+        Unc_tag_found = re.search(Unc_tag, line)
+        Grad_tag_found = re.search(Grad_tag, line)
+        Rub_tag_found = re.search(Rub_tag, line)
+        Name_tag_found = re.search(Name_tag, line)
+        Project_tag_found = re.search(Project_tag, line)
+        Date_tag_found = re.search(Date_tag, line)
+
+        if Unc_tag_found is not None:
+            skip_grad = True
+
+        if Grad_tag_found is not None:
+            if not skip_grad:
+                data_row.append(line_elements[1])
+
+        # Old g versions don't output Time Offset, which comes right
+        # before gravity
+        if Grav_tag_found is not None:
+            if version < 5:
+                data_row.append('-999')
+            data_row.append(line_elements[1])
+
+        if Delta_tag_found is not None:
+            dtf = True
+            df = " ".join(line_elements[1:])
+
+        if OL_tag_found is not None:
+            olf = True
+            of = " ".join(line_elements[1:])
+
+        if Rub_tag_found is not None:
+            if dtf:
+                data_row.append(df)
+            else:
+                data_row.append('-999')
+            if olf:
+                data_row.append(of)
+            else:
+                data_row.append('-999')
+            data_row.append(line_elements[1])
+
+        if Version_tag_found is not None:
+            version = float(line_elements[1])
+
+        if Name_tag_found is not None or Project_tag_found is not None:
+            try:
+                name = " ".join(line_elements[1:])
+                data_row.append(name)
+            except:
+                data_row.append('-999')
+
+        if tags_found is not None:
+            try:
+                data_row.append(line_elements[1])
+            except:
+                data_row.append('-999')
+
+        if Date_tag_found is not None:
+            data_row.append(line_elements[1])
+
+        if Lat_tag_found is not None:
+            data_row.append(line_elements[1])
+            data_row.append(line_elements[3])
+            data_row.append(line_elements[5])
+            # This accommodates old versions of g. If these data are to
+            # be published, though, they should be reprocessed in a more
+            # recent version.
+            if version < 5:
+                data_row.append('-999')  # Setup Height
+                data_row.append('-999')  # Transfer Height
+                data_row.append('-999')  # Actual Height
+
+        if Pol_tag_found is not None:
+            data_row.append(line_elements[1])
+            data_row.append(line_elements[3])
+            # if version < 5:
+            #     data_row.append('-999') # delta factor filename
+
+        if inComments > 0:
+            comments = comments + line
+            if inComments > 1:
+                comments = comments + ' | '
+            inComments += inComments
+
+        if Comment_tag_found is not None:
+            inComments = 1
+            comments = ''
+
+    # Old g versions don't output transfer height correction
+    if version < 5:
+        data_row.append('-999')
+    data_row.append(comments)
+    return data_row

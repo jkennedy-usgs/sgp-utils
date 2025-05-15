@@ -1,5 +1,7 @@
 import sys
 import subprocess
+from pathlib import Path
+
 from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QWidget, \
     QLabel, QHBoxLayout
 
@@ -10,7 +12,7 @@ class HelpDialog(QDialog):
         self.initUI(help_text)
 
     def initUI(self, help_text):
-        # self.setWindowTitle('Help')
+        self.setWindowTitle('Help')
         layout = QVBoxLayout()
 
         # Help text
@@ -41,12 +43,15 @@ class AppDialog(QDialog):
              "python C:\\sgp-utils\\sgp-utils\\fg5_parse.py",
              "This program parses absolute data (...project.txt files). in the specified " 
              "directory. It generates a .csv file with the important information."),
+            # ("Parse AND Plot",
+            #  "python C:\\sgp-utils\\sgp-utils\\fg5_parse_and_plot.py",
+            #  "This program runs the csv parser, then sends the output to fg5_plot.py"),
             ("Laser drift correction",
              "python C:\\sgp-utils\\sgp-utils\\fg5_update_laser.py",
              "This program applies a laser drift correction to the .project.txt files in the chosen \n" \
              ' directory. The original .project.txt file is backed up as a \".original.txt\" file and a \n' \
              "comment is added to the .project.txt file to indicate the gravity value was adjusted."),
-            ("Ingestor", "C:\\Path\\To\\Your\\Executable4.exe",
+            ("Ingestor", r"python ..\ingestor\ingestor.py",
              "Help text for Executable 4."),
             # ("Executable 5", "C:\\Path\\To\\Your\\Executable5.exe",
             #  "Help text for Executable 5."),
@@ -73,7 +78,7 @@ class AppDialog(QDialog):
 
     def run_executable(self, path):
         try:
-            subprocess.Popen(path)
+            subprocess.Popen(path, cwd=Path(r"..\ingestor").resolve())
         except Exception as e:
             print(f"Error launching {path}: {e}")
 
