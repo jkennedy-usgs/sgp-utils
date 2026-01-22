@@ -22,13 +22,15 @@ from time import strftime
 import configparser
 from fg5 import project_to_list
 
-# config = configparser.ConfigParser()
-# config.read('fg5_parse.ini')
-# SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
-# if QC_MODE := config.getboolean('Parameters', 'QC_MODE'):
-#     print("Running in QC mode (edit parse_fg5.ini to change).")
+config = configparser.ConfigParser()
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config.read(os.path.join(dir_path, 'fg5_parse.ini'))
+SKIP_UNPUBLISHED = config.getboolean('Parameters', 'SKIP_UNPUBLISHED')
+if QC_MODE := config.getboolean('Parameters', 'QC_MODE'):
+    print("Running in QC mode (edit parse_fg5.ini to change).")
+
 pd = os.getcwd()
-gravity_data_archive = r"\\Igswztwwgszona\Gravity Data Archive"
+gravity_data_archive = r"\\gs\tucsonaz-w\wsc\Gravity Data Archive"
 polar_motion_spreadsheet = f"'{gravity_data_archive}\\QAQC\\[finals.data.xlsx]Sheet1'"
 calibration_spreadsheet = f"'{gravity_data_archive}\\Absolute Data" + \
                           r"\A-10\Instrument Maintenance\Calibrations" + \

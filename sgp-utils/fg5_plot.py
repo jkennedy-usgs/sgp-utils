@@ -27,9 +27,12 @@ import matplotlib.ticker as tkr
 import configparser
 import datetime
 import sys
+import os
 
 config = configparser.ConfigParser()
-config.read(r"C:\sgp-utils\sgp-utils\fg5_plot.ini")
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config.read(os.path.join(dir_path, 'fg5_plot.ini'))
 
 YAXIS_LIMITS_TIGHT = config.getboolean('Parameters', 'YAXIS_LIMITS_TIGHT')
 YAXIS_FT_OF_WATER = config.getboolean('Parameters', 'YAXIS_FT_OF_WATER')
